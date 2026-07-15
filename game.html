@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Link Challenge</title>
+    <script src="./settings.js?v=appearance-5"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+</head>
+<body>
+    <main class="page-shell wide-shell">
+        <header class="game-header">
+            <div>
+                <p class="eyebrow">Music Link</p>
+                <h1 class="page-heading">Find the connection.</h1>
+            </div>
+            <a href="./index.html" data-preserve-theme>New challenge</a>
+        </header>
+
+        <section class="card challenge-card" aria-label="Challenge">
+            <div class="challenge-endpoint">
+                <span class="challenge-label">Start</span>
+                <strong id="start-artist" class="challenge-name">Loading...</strong>
+            </div>
+            <span class="challenge-arrow" aria-hidden="true">→</span>
+            <div class="challenge-endpoint">
+                <span class="challenge-label">Target</span>
+                <strong id="target-artist" class="challenge-name">Loading...</strong>
+            </div>
+        </section>
+
+        <section class="card game-card">
+            <div class="game-meta">
+                <div>
+                    <span class="current-artist-label">Current artist</span>
+                    <div id="artist">Loading...</div>
+                </div>
+                <div class="game-counters" aria-label="Game progress">
+                    <span id="move-count">0 moves</span>
+                    <time id="timer">00:00</time>
+                </div>
+            </div>
+
+            <div class="autocomplete">
+                <label class="visually-hidden" for="search">Find one of this artist's songs</label>
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
+                    </svg>
+                    <input
+                        id="search"
+                        type="search"
+                        placeholder="Search songs"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-controls="song-suggestions"
+                        aria-expanded="false"
+                    >
+                </div>
+                <div id="song-suggestions" class="suggestions" role="listbox" hidden></div>
+            </div>
+
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+
+            <h2>Move to artist</h2>
+            <div id="choices"></div>
+
+            <ol id="route-preview" class="route-preview" aria-label="Route so far"></ol>
+        </section>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./game.js?v=flow-3"></script>
+</body>
+</html>

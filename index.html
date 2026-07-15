@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose a Music Link Challenge</title>
+    <script src="./settings.js?v=appearance-5"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+</head>
+<body>
+    <main class="page-shell">
+        <header>
+            <p class="eyebrow">Music Link</p>
+            <h1 class="page-heading">Connect two artists.</h1>
+            <p class="page-intro">
+                Pick where your route begins and where it should end. In the game,
+                move between artists through songs they share.
+            </p>
+        </header>
+
+        <form id="challenge-form" class="card setup-card">
+            <div class="picker-grid">
+                <div class="picker-field">
+                    <label for="start-input">Start artist</label>
+                    <div class="autocomplete">
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
+                            </svg>
+                            <input
+                                id="start-input"
+                                type="search"
+                                placeholder="Search artists"
+                                autocomplete="off"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="start-suggestions"
+                                aria-expanded="false"
+                            >
+                        </div>
+                        <div id="start-suggestions" class="suggestions" role="listbox" hidden></div>
+                    </div>
+                    <small>Your first artist in the route.</small>
+                </div>
+
+                <div class="picker-field">
+                    <label for="end-input">End artist</label>
+                    <div class="autocomplete">
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
+                            </svg>
+                            <input
+                                id="end-input"
+                                type="search"
+                                placeholder="Search artists"
+                                autocomplete="off"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="end-suggestions"
+                                aria-expanded="false"
+                            >
+                        </div>
+                        <div id="end-suggestions" class="suggestions" role="listbox" hidden></div>
+                    </div>
+                    <small>The artist you need to reach.</small>
+                </div>
+            </div>
+
+            <p id="setup-status" class="status" role="status" aria-live="polite"></p>
+
+            <div class="setup-actions">
+                <button id="start-game" class="primary-button" type="submit" disabled>
+                    Start challenge
+                </button>
+                <button id="lucky-button" class="secondary-button" type="button">
+                    I'm Feeling Lucky
+                </button>
+                <button id="share-link" class="secondary-button" type="button" disabled>
+                    Share Link
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./setup.js?v=flow-4"></script>
+</body>
+</html>

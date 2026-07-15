@@ -1,0 +1,11 @@
+{
+  "name": "song-dna-game",
+  "version": "1.0.0",
+  "description": "Static database-backed artist connection game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:database": "node build-database.js",
+    "test": "node --test test/setup.test.js test/share-fallback.test.js test/game-flow.test.js test/target-dead-end.test.js test/results.test.js test/settings.test.js"
+  }
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Link Results</title>
+    <script src="./settings.js?v=appearance-5"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+</head>
+<body>
+    <main class="page-shell">
+        <header>
+            <p class="eyebrow">Challenge complete</p>
+            <h1 class="page-heading">You made the connection.</h1>
+            <p id="challenge-summary" class="page-intro"></p>
+        </header>
+
+        <section id="results-content" class="card results-card" hidden>
+            <span class="success-badge">Route completed</span>
+
+            <div class="stats-grid" aria-label="Game statistics">
+                <div class="stat">
+                    <strong id="time-stat" class="stat-value">-</strong>
+                    <span class="stat-label">Time</span>
+                </div>
+                <div class="stat">
+                    <strong id="move-stat" class="stat-value">-</strong>
+                    <span class="stat-label">Moves</span>
+                </div>
+                <div class="stat">
+                    <strong id="artist-stat" class="stat-value">-</strong>
+                    <span class="stat-label">Artists visited</span>
+                </div>
+                <div class="stat">
+                    <strong id="unique-stat" class="stat-value">-</strong>
+                    <span class="stat-label">Unique artists</span>
+                </div>
+            </div>
+
+            <h2>Your route</h2>
+            <ol id="route-list" class="route-list"></ol>
+
+            <div class="result-actions">
+                <a id="replay-link" class="primary-button" href="./index.html" data-preserve-theme>Play this challenge again</a>
+                <a class="secondary-button" href="./index.html" data-preserve-theme>Choose new artists</a>
+            </div>
+        </section>
+
+        <div id="results-error" class="error-panel" hidden>
+            <strong>These results could not be loaded.</strong>
+            <p id="results-error-message"></p>
+            <a href="./index.html">Choose a new challenge</a>
+        </div>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./results.js?v=flow-3"></script>
+</body>
+</html>
