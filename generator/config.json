@@ -1,0 +1,16 @@
+{
+  "app_name": "ArtistRouteDatabaseBuilder",
+  "app_version": "1.0.0",
+  "contact": "https://romoboss.com",
+  "database_path": "generator/music_graph.db",
+  "cache_path": "generator/cache",
+  "output_path": "output",
+  "reports_path": "generator/reports",
+  "request_file": "generator/requests.json",
+  "top_artists": 100,
+  "songs_per_artist": 100,
+  "pretty_json": false,
+  "musicbrainz_min_interval_seconds": 1.1,
+  "minimum_artist_match_score": 90,
+  "include_orphan_artists_in_export": false
+}

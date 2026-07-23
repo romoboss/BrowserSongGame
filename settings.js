@@ -1,5 +1,9 @@
 (() => {
-    const storageKey = "music-link-theme";
+    const themeStorageKey = "music-link-theme";
+    const resultLimitStorageKey = "music-link-result-limit";
+    const defaultResultLimit = 10;
+    const minimumResultLimit = 1;
+    const maximumResultLimit = 25;
     const themes = [
         { id: "white", label: "White" },
         { id: "grey", label: "Grey" },
@@ -21,6 +25,15 @@
     ];
     const validThemes = new Set(themes.map(theme => theme.id));
 
+    function parseResultLimit(value) {
+        const resultLimit = Number(value);
+        return Number.isInteger(resultLimit)
+            && resultLimit >= minimumResultLimit
+            && resultLimit <= maximumResultLimit
+            ? resultLimit
+            : null;
+    }
+
     function readLocationTheme() {
         try {
             const theme = new URLSearchParams(globalThis.location?.search || "").get("theme");
@@ -32,40 +45,70 @@
 
     function readStoredTheme() {
         try {
-            const storedTheme = globalThis.localStorage?.getItem(storageKey);
+            const storedTheme = globalThis.localStorage?.getItem(themeStorageKey);
             return validThemes.has(storedTheme) ? storedTheme : "white";
         } catch {
             return "white";
         }
     }
 
+    function readLocationResultLimit() {
+        try {
+            return parseResultLimit(
+                new URLSearchParams(globalThis.location?.search || "").get("limit")
+            );
+        } catch {
+            return null;
+        }
+    }
+
+    function readStoredResultLimit() {
+        try {
+            return parseResultLimit(globalThis.localStorage?.getItem(resultLimitStorageKey))
+                ?? defaultResultLimit;
+        } catch {
+            return defaultResultLimit;
+        }
+    }
+
     function storeTheme(theme) {
         try {
-            globalThis.localStorage?.setItem(storageKey, theme);
+            globalThis.localStorage?.setItem(themeStorageKey, theme);
         } catch {
             // Theme changes still work for this page when file storage is unavailable.
         }
     }
 
-    function addThemeToLink(href, theme) {
+    function storeResultLimit(resultLimit) {
+        try {
+            globalThis.localStorage?.setItem(resultLimitStorageKey, String(resultLimit));
+        } catch {
+            // The selected limit still works for this page when file storage is unavailable.
+        }
+    }
+
+    function addSettingsToLink(href, theme, resultLimit) {
         const [beforeHash, hash = ""] = String(href).split("#", 2);
         const [path, query = ""] = beforeHash.split("?", 2);
         const parameters = new URLSearchParams(query);
         parameters.set("theme", theme);
+        parameters.set("limit", String(resultLimit));
         return `${path}?${parameters}${hash ? `#${hash}` : ""}`;
     }
 
-    function updateThemeLinks(theme) {
+    function updateSettingsLinks(theme, resultLimit) {
         if (typeof document.querySelectorAll !== "function") return;
 
         for (const link of document.querySelectorAll("a[data-preserve-theme]")) {
             const href = link.getAttribute("href");
-            if (href) link.setAttribute("href", addThemeToLink(href, theme));
+            if (href) link.setAttribute("href", addSettingsToLink(href, theme, resultLimit));
         }
     }
 
     let selectedTheme = readLocationTheme() || readStoredTheme();
+    let selectedResultLimit = readLocationResultLimit() ?? readStoredResultLimit();
     document.documentElement.dataset.theme = selectedTheme;
+    document.documentElement.dataset.resultLimit = String(selectedResultLimit);
 
     function initializeSettings() {
         if (!document.body || document.getElementById("settings-button")) return;
@@ -81,6 +124,16 @@
         const appearanceTitle = document.createElement("h3");
         const appearanceDescription = document.createElement("p");
         const options = document.createElement("div");
+        const resultSection = document.createElement("section");
+        const resultTitle = document.createElement("h3");
+        const resultDescription = document.createElement("p");
+        const resultHeader = document.createElement("div");
+        const resultLabel = document.createElement("label");
+        const resultValue = document.createElement("output");
+        const resultSlider = document.createElement("input");
+        const resultBounds = document.createElement("div");
+        const resultMinimum = document.createElement("span");
+        const resultMaximum = document.createElement("span");
         const contactSection = document.createElement("section");
         const contactTitle = document.createElement("h3");
         const contactDescription = document.createElement("p");
@@ -135,8 +188,17 @@
             for (const button of optionButtons) {
                 button.setAttribute("aria-pressed", String(button.dataset.theme === selectedTheme));
             }
-            updateThemeLinks(selectedTheme);
+            updateSettingsLinks(selectedTheme, selectedResultLimit);
             if (persist) storeTheme(selectedTheme);
+        }
+
+        function applyResultLimit(resultLimit, persist = true) {
+            selectedResultLimit = parseResultLimit(resultLimit) ?? defaultResultLimit;
+            document.documentElement.dataset.resultLimit = String(selectedResultLimit);
+            resultSlider.value = String(selectedResultLimit);
+            resultValue.textContent = String(selectedResultLimit);
+            updateSettingsLinks(selectedTheme, selectedResultLimit);
+            if (persist) storeResultLimit(selectedResultLimit);
         }
 
         for (const theme of themes) {
@@ -163,6 +225,42 @@
         appearanceSection.appendChild(appearanceDescription);
         appearanceSection.appendChild(options);
 
+        resultSection.className = "settings-section";
+        resultTitle.className = "settings-section-title";
+        resultTitle.textContent = "Search results";
+        resultDescription.className = "settings-section-description";
+        resultDescription.textContent = "Choose how many autocomplete results are shown while searching.";
+        resultHeader.className = "settings-range-header";
+        resultLabel.className = "settings-range-label";
+        resultLabel.textContent = "Results shown";
+        resultLabel.htmlFor = "result-limit";
+        resultValue.className = "settings-range-value";
+        resultValue.textContent = String(selectedResultLimit);
+        resultValue.setAttribute("for", "result-limit");
+        resultHeader.appendChild(resultLabel);
+        resultHeader.appendChild(resultValue);
+        resultSlider.id = "result-limit";
+        resultSlider.className = "settings-range";
+        resultSlider.type = "range";
+        resultSlider.min = String(minimumResultLimit);
+        resultSlider.max = String(maximumResultLimit);
+        resultSlider.step = "1";
+        resultSlider.value = String(selectedResultLimit);
+        resultSlider.setAttribute("aria-valuemin", String(minimumResultLimit));
+        resultSlider.setAttribute("aria-valuemax", String(maximumResultLimit));
+        resultSlider.addEventListener("input", () => applyResultLimit(resultSlider.value));
+        resultBounds.className = "settings-range-bounds";
+        resultBounds.setAttribute("aria-hidden", "true");
+        resultMinimum.textContent = String(minimumResultLimit);
+        resultMaximum.textContent = String(maximumResultLimit);
+        resultBounds.appendChild(resultMinimum);
+        resultBounds.appendChild(resultMaximum);
+        resultSection.appendChild(resultTitle);
+        resultSection.appendChild(resultDescription);
+        resultSection.appendChild(resultHeader);
+        resultSection.appendChild(resultSlider);
+        resultSection.appendChild(resultBounds);
+
         contactSection.className = "settings-section settings-contact";
         contactTitle.className = "settings-section-title";
         contactTitle.textContent = "Requests and Feedback";
@@ -173,6 +271,7 @@
 
         panel.appendChild(header);
         panel.appendChild(appearanceSection);
+        panel.appendChild(resultSection);
         panel.appendChild(contactSection);
 
         function openPanel() {
@@ -200,6 +299,7 @@
         document.body.appendChild(panel);
         document.body.appendChild(launcher);
         applyTheme(selectedTheme, false);
+        applyResultLimit(selectedResultLimit, false);
     }
 
     if (document.readyState === "loading") {
