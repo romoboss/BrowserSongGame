@@ -12,7 +12,8 @@ const elements = installFakeDocument([
     "status",
     "move-count",
     "timer",
-    "route-preview"
+    "route-preview",
+    "restart-challenge"
 ]);
 elements["song-suggestions"].hidden = true;
 globalThis.SONG_DATABASE = createDatabaseFixture();
@@ -21,8 +22,12 @@ globalThis.location = {
     search: "?start=1&end=3",
     href: "",
     replacedWith: "",
+    reloadCount: 0,
     replace(url) {
         this.replacedWith = url;
+    },
+    reload() {
+        this.reloadCount += 1;
     }
 };
 
@@ -42,6 +47,9 @@ test("game records the final move, disables dead ends, and opens results", () =>
     assert.equal(elements["start-artist"].textContent, "Start Artist");
     assert.equal(elements["target-artist"].textContent, "Target Artist");
     assert.equal(elements.artist.textContent, "Start Artist");
+
+    elements["restart-challenge"].dispatch("click");
+    assert.equal(globalThis.location.reloadCount, 1);
 
     elements.search.value = "Start Solo";
     elements.search.dispatch("input");
@@ -70,7 +78,10 @@ test("game records the final move, disables dead ends, and opens results", () =>
     document.documentElement.dataset.theme = "black";
     targetButton.dispatch("click");
 
-    assert.match(globalThis.location.replacedWith, /^\.\/results\.html\?theme=black&limit=2#/);
+    assert.match(
+        globalThis.location.replacedWith,
+        /^\.\/results\.html\?theme=black&limit=2&transparency=48#/
+    );
     const parameters = new URLSearchParams(globalThis.location.replacedWith.split("#")[1]);
     assert.equal(parameters.get("start"), "1");
     assert.equal(parameters.get("end"), "3");

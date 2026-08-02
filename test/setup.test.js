@@ -91,7 +91,7 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.equal(prevented, true);
     assert.match(
         globalThis.location.href,
-        /^\.\/game\.html\?start=[13]&end=[13]&theme=purple&limit=10$/
+        /^\.\/game\.html\?start=[13]&end=[13]&theme=purple&limit=10&transparency=48$/
     );
     assert.notEqual(startId, endId);
 });

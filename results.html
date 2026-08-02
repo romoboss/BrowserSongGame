@@ -3,21 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Link Results</title>
-    <script src="./settings.js?v=appearance-5"></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+    <meta name="theme-color" content="#aeb1b5">
+    <title>Songaveler Results</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-12"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-7">
+    <link rel="stylesheet" href="./theme.css?v=paper-13">
 </head>
-<body>
+<body class="results-page">
     <main class="page-shell">
-        <header>
-            <p class="eyebrow">Challenge complete</p>
-            <h1 class="page-heading">You made the connection.</h1>
-            <p id="challenge-summary" class="page-intro"></p>
-        </header>
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
+            </div>
+        </div>
 
-        <section id="results-content" class="card results-card" hidden>
-            <span class="success-badge">Route completed</span>
+        <div class="card content-card intro-card page-header">
+            <div class="panel-content">
+                <span class="section-tag">Challenge complete</span>
+                <h2 class="section-heading">You made the <span class="accent-cyan">connection.</span></h2>
+                <p id="challenge-summary" class="page-intro"></p>
+            </div>
+        </div>
 
+        <div id="results-content" class="card content-card results-card" hidden>
             <div class="stats-grid" aria-label="Game statistics">
                 <div class="stat">
                     <strong id="time-stat" class="stat-value">-</strong>
@@ -37,23 +47,29 @@
                 </div>
             </div>
 
-            <h2>Your route</h2>
-            <ol id="route-list" class="route-list"></ol>
+            <div class="route-heading">
+                <h2>Your <span class="accent-yellow">route</span></h2>
+            </div>
+            <div class="route-list-container">
+                <ol id="route-list" class="route-list"></ol>
+            </div>
 
             <div class="result-actions">
                 <a id="replay-link" class="primary-button" href="./index.html" data-preserve-theme>Play this challenge again</a>
                 <a class="secondary-button" href="./index.html" data-preserve-theme>Choose new artists</a>
             </div>
-        </section>
+        </div>
 
         <div id="results-error" class="error-panel" hidden>
-            <strong>These results could not be loaded.</strong>
-            <p id="results-error-message"></p>
-            <a href="./index.html">Choose a new challenge</a>
+            <div class="panel-content">
+                <strong>These results could not be loaded.</strong>
+                <p id="results-error-message"></p>
+                <a href="./index.html">Choose a new challenge</a>
+            </div>
         </div>
     </main>
 
     <script src="./database.js?v=20260715T200355"></script>
-    <script src="./results.js?v=flow-3"></script>
+    <script src="./results.js?v=flow-4"></script>
 </body>
 </html>

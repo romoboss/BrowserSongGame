@@ -37,6 +37,13 @@ function getMaximumSuggestions() {
         : 10;
 }
 
+function getUiTransparency() {
+    const transparency = Number(document.documentElement.dataset.uiTransparency);
+    return Number.isInteger(transparency) && transparency >= 0 && transparency <= 80
+        ? transparency
+        : 48;
+}
+
 function getChallengeParameters(includeSettings = true) {
     const parameters = new URLSearchParams({
         start: selectedStartArtist.id,
@@ -46,6 +53,7 @@ function getChallengeParameters(includeSettings = true) {
     if (includeSettings) {
         parameters.set("theme", document.documentElement.dataset.theme || "white");
         parameters.set("limit", String(getMaximumSuggestions()));
+        parameters.set("transparency", String(getUiTransparency()));
     }
 
     return parameters;

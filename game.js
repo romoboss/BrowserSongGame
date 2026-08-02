@@ -10,6 +10,7 @@ const statusElement = document.getElementById("status");
 const moveCountElement = document.getElementById("move-count");
 const timerElement = document.getElementById("timer");
 const routePreviewElement = document.getElementById("route-preview");
+const restartButton = document.getElementById("restart-challenge");
 
 let startArtist = null;
 let targetArtist = null;
@@ -38,6 +39,13 @@ function getMaximumSuggestions() {
     return Number.isInteger(resultLimit) && resultLimit >= 1 && resultLimit <= 25
         ? resultLimit
         : 10;
+}
+
+function getUiTransparency() {
+    const transparency = Number(document.documentElement.dataset.uiTransparency);
+    return Number.isInteger(transparency) && transparency >= 0 && transparency <= 80
+        ? transparency
+        : 48;
 }
 
 function getArtist(id) {
@@ -146,7 +154,8 @@ function finishGame() {
     const theme = document.documentElement.dataset.theme || "white";
     const pageParameters = new URLSearchParams({
         theme,
-        limit: String(getMaximumSuggestions())
+        limit: String(getMaximumSuggestions()),
+        transparency: String(getUiTransparency())
     });
     const resultsUrl = `./results.html?${pageParameters}#${parameters}`;
 
@@ -307,6 +316,14 @@ function handleSearchKeydown(event) {
     }
 }
 
+function restartChallenge() {
+    if (typeof globalThis.location.reload === "function") {
+        globalThis.location.reload();
+    } else {
+        globalThis.location.href = globalThis.location.href;
+    }
+}
+
 function initialize() {
     if (!database?.artists || !database?.songs || !database?.artistSongs || !database?.songData) {
         searchInput.disabled = true;
@@ -332,7 +349,7 @@ function initialize() {
 
     startArtistElement.textContent = startArtist.name;
     targetArtistElement.textContent = targetArtist.name;
-    document.title = `${startArtist.name} to ${targetArtist.name} - Music Link`;
+    document.title = `${startArtist.name} to ${targetArtist.name} - Songaveler`;
 
     route = [{ artistId: startArtist.id }];
     startedAt = Date.now();
@@ -352,7 +369,8 @@ const missingElements = [
     ["status", statusElement],
     ["move-count", moveCountElement],
     ["timer", timerElement],
-    ["route-preview", routePreviewElement]
+    ["route-preview", routePreviewElement],
+    ["restart-challenge", restartButton]
 ].filter(([, element]) => !element).map(([id]) => id);
 
 if (missingElements.length > 0) {
@@ -362,5 +380,6 @@ if (missingElements.length > 0) {
     searchInput.addEventListener("focus", updateSuggestions);
     searchInput.addEventListener("keydown", handleSearchKeydown);
     searchInput.addEventListener("blur", () => setTimeout(closeSuggestions, 150));
+    restartButton.addEventListener("click", restartChallenge);
     initialize();
 }

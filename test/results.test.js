@@ -33,5 +33,8 @@ test("results validates and renders route statistics", () => {
     assert.equal(elements["artist-stat"].textContent, "3");
     assert.equal(elements["unique-stat"].textContent, "3");
     assert.equal(elements["route-list"].children.length, 3);
-    assert.equal(elements["replay-link"].href, "./game.html?start=1&end=3&theme=pink&limit=10");
+    assert.equal(
+        elements["replay-link"].href,
+        "./game.html?start=1&end=3&theme=pink&limit=10&transparency=48"
+    );
 });

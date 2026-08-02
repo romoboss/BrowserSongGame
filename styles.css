@@ -31,9 +31,9 @@
 
 :root[data-theme="grey"] {
     color-scheme: light;
-    --background: #e5e7eb;
-    --surface: #f8fafc;
-    --surface-muted: #e2e8f0;
+    --background: #aaabae;
+    --surface: #e1e2e2;
+    --surface-muted: #c5cad1;
     --text: #1f2937;
     --muted: #52606d;
     --border: #c5ccd5;
@@ -403,7 +403,7 @@ a {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.13em;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .page-heading {
@@ -446,7 +446,7 @@ a {
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .picker-field small {
@@ -644,20 +644,6 @@ a {
     min-width: 170px;
 }
 
-.game-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.game-header a {
-    color: var(--muted);
-    font-size: 0.9rem;
-    text-decoration: none;
-}
-
 .challenge-card {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -682,7 +668,7 @@ a {
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .challenge-name {
@@ -797,17 +783,6 @@ a {
     padding: clamp(22px, 5vw, 38px);
 }
 
-.success-badge {
-    display: inline-block;
-    margin-bottom: 14px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    color: var(--success);
-    background: var(--success-surface);
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -832,7 +807,7 @@ a {
 .stat-label {
     color: var(--muted);
     font-size: 0.78rem;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .route-list {

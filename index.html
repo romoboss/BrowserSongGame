@@ -1,89 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose a Music Link Challenge</title>
-    <script src="./settings.js?v=appearance-5"></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+    <meta name="theme-color" content="#aeb1b5">
+    <title>Choose a Songaveler Challenge</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-12"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-7">
+    <link rel="stylesheet" href="./theme.css?v=paper-13">
 </head>
-<body>
+
+<body class="setup-page">
     <main class="page-shell">
-        <header>
-            <p class="eyebrow">Music Link</p>
-            <h1 class="page-heading">Connect two artists.</h1>
-            <p class="page-intro">
-                Pick where your route begins and where it should end. In the game,
-                move between artists through songs they share.
-            </p>
-        </header>
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
+            </div>
+        </div>
 
-        <form id="challenge-form" class="card setup-card">
-            <div class="picker-grid">
-                <div class="picker-field">
-                    <label for="start-input">Start artist</label>
-                    <div class="autocomplete">
-                        <div class="search-box">
-                            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
-                            </svg>
-                            <input
-                                id="start-input"
-                                type="search"
-                                placeholder="Search artists"
-                                autocomplete="off"
-                                role="combobox"
-                                aria-autocomplete="list"
-                                aria-controls="start-suggestions"
-                                aria-expanded="false"
-                            >
-                        </div>
-                        <div id="start-suggestions" class="suggestions" role="listbox" hidden></div>
-                    </div>
-                    <small>Your first artist in the route.</small>
+        <div class="card content-card intro-card">
+            <div class="panel-content">
+                <h2 class="section-heading">Connect <span class="accent-pink">two artists.</span></h2>
+                <p class="page-intro">
+                    Pick where your <strong class="accent-pink">route begins</strong> and where it should end.
+                    In the game, move between artists through <strong class="accent-cyan">songs they share.</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="card content-card setup-card">
+            <form id="challenge-form" class="challenge-form">
+                <div class="card-heading">
+                    <span class="section-tag">Choose the endpoints</span>
+                    <h2>Set your <span class="accent-yellow">route</span></h2>
                 </div>
 
-                <div class="picker-field">
-                    <label for="end-input">End artist</label>
-                    <div class="autocomplete">
-                        <div class="search-box">
-                            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
-                            </svg>
-                            <input
-                                id="end-input"
-                                type="search"
-                                placeholder="Search artists"
-                                autocomplete="off"
-                                role="combobox"
-                                aria-autocomplete="list"
-                                aria-controls="end-suggestions"
-                                aria-expanded="false"
-                            >
+                <div class="picker-grid">
+                    <div class="picker-field">
+                        <label for="start-input"><span>01</span> Start artist</label>
+                        <div class="autocomplete">
+                            <div class="search-box">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <input id="start-input" type="search" placeholder="Search artists" autocomplete="off"
+                                    role="combobox" aria-autocomplete="list" aria-controls="start-suggestions"
+                                    aria-expanded="false">
+                            </div>
+                            <div id="start-suggestions" class="suggestions" role="listbox" hidden></div>
                         </div>
-                        <div id="end-suggestions" class="suggestions" role="listbox" hidden></div>
+                        <small>Your first artist in the route.</small>
                     </div>
-                    <small>The artist you need to reach.</small>
+
+                    <div class="picker-link" aria-hidden="true">
+                        <img src="./assets/arrow.png" alt="">
+                    </div>
+
+                    <div class="picker-field">
+                        <label for="end-input"><span>02</span> End artist</label>
+                        <div class="autocomplete">
+                            <div class="search-box">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <input id="end-input" type="search" placeholder="Search artists" autocomplete="off"
+                                    role="combobox" aria-autocomplete="list" aria-controls="end-suggestions"
+                                    aria-expanded="false">
+                            </div>
+                            <div id="end-suggestions" class="suggestions" role="listbox" hidden></div>
+                        </div>
+                        <small>The artist you need to reach.</small>
+                    </div>
                 </div>
-            </div>
 
-            <p id="setup-status" class="status" role="status" aria-live="polite"></p>
+                <div class="status-container">
+                    <p id="setup-status" class="status" role="status" aria-live="polite"></p>
+                </div>
 
-            <div class="setup-actions">
-                <button id="start-game" class="primary-button" type="submit" disabled>
-                    Start challenge
-                </button>
-                <button id="lucky-button" class="secondary-button" type="button">
-                    I'm Feeling Lucky
-                </button>
-                <button id="share-link" class="secondary-button" type="button" disabled>
-                    Share Link
-                </button>
-            </div>
-        </form>
+                <div class="setup-actions">
+                    <button id="start-game" class="primary-button" type="submit" disabled>
+                        Start challenge
+                    </button>
+                    <button id="lucky-button" class="secondary-button" type="button">
+                        I'm Feeling Lucky
+                    </button>
+                    <button id="share-link" class="secondary-button" type="button" disabled>
+                        Share Link
+                    </button>
+                </div>
+            </form>
+        </div>
     </main>
 
     <script src="./database.js?v=20260715T200355"></script>
-    <script src="./setup.js?v=flow-4"></script>
+    <script src="./setup.js?v=flow-5"></script>
 </body>
+
 </html>

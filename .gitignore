@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 *.py[cod]
+node_modules
 generator/music_graph.db
 generator/music_graph.db-shm
 generator/music_graph.db-wal

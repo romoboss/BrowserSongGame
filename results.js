@@ -18,6 +18,13 @@ function getMaximumSuggestions() {
         : 10;
 }
 
+function getUiTransparency() {
+    const transparency = Number(document.documentElement.dataset.uiTransparency);
+    return Number.isInteger(transparency) && transparency >= 0 && transparency <= 80
+        ? transparency
+        : 48;
+}
+
 function getArtist(id) {
     const name = database.artists[id];
     return name ? { id: String(id), name } : null;
@@ -145,7 +152,8 @@ function initialize() {
         start: startId,
         end: endId,
         theme: document.documentElement.dataset.theme || "white",
-        limit: String(getMaximumSuggestions())
+        limit: String(getMaximumSuggestions()),
+        transparency: String(getUiTransparency())
     })}`;
     document.title = `${startArtist.name} to ${endArtist.name} - Results`;
 

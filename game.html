@@ -3,35 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Link Challenge</title>
-    <script src="./settings.js?v=appearance-5"></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-5">
+    <meta name="theme-color" content="#aeb1b5">
+    <title>Songaveler Challenge</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-12"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-7">
+    <link rel="stylesheet" href="./theme.css?v=paper-13">
 </head>
-<body>
+<body class="game-page">
     <main class="page-shell wide-shell">
-        <header class="game-header">
-            <div>
-                <p class="eyebrow">Music Link</p>
-                <h1 class="page-heading">Find the connection.</h1>
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
             </div>
-            <a href="./index.html" data-preserve-theme>New challenge</a>
-        </header>
+        </div>
 
-        <section class="card challenge-card" aria-label="Challenge">
+        <div class="card content-card challenge-card" role="region" aria-label="Challenge">
             <div class="challenge-endpoint">
                 <span class="challenge-label">Start</span>
                 <strong id="start-artist" class="challenge-name">Loading...</strong>
             </div>
-            <span class="challenge-arrow" aria-hidden="true">→</span>
+            <div class="challenge-arrow" aria-hidden="true">
+                <img src="./assets/arrow.png" alt="">
+            </div>
             <div class="challenge-endpoint">
                 <span class="challenge-label">Target</span>
                 <strong id="target-artist" class="challenge-name">Loading...</strong>
             </div>
-        </section>
+        </div>
 
-        <section class="card game-card">
+        <div class="card content-card game-card">
             <div class="game-meta">
-                <div>
+                <div class="current-artist">
                     <span class="current-artist-label">Current artist</span>
                     <div id="artist">Loading...</div>
                 </div>
@@ -44,9 +48,7 @@
             <div class="autocomplete">
                 <label class="visually-hidden" for="search">Find one of this artist's songs</label>
                 <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="currentColor" d="M9.5 3a6.5 6.5 0 1 0 3.98 11.64L19.85 21 21 19.85l-6.36-6.37A6.5 6.5 0 0 0 9.5 3Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z"/>
-                    </svg>
+                    <img class="search-icon" src="./assets/magnifier.png" alt="">
                     <input
                         id="search"
                         type="search"
@@ -61,16 +63,33 @@
                 <div id="song-suggestions" class="suggestions" role="listbox" hidden></div>
             </div>
 
-            <p id="status" class="status" role="status" aria-live="polite"></p>
+            <div class="status-container">
+                <p id="status" class="status" role="status" aria-live="polite"></p>
+            </div>
 
-            <h2>Move to artist</h2>
+            <div class="choice-heading">
+                <h2>Move to <span class="accent-pink">artist</span></h2>
+            </div>
             <div id="choices"></div>
 
-            <ol id="route-preview" class="route-preview" aria-label="Route so far"></ol>
-        </section>
+            <div class="route-preview-container">
+                <ol id="route-preview" class="route-preview" aria-label="Route so far"></ol>
+            </div>
+        </div>
+
+        <div class="card content-card game-actions-card">
+            <div class="game-actions">
+                <button id="restart-challenge" class="primary-button" type="button">
+                    Restart challenge
+                </button>
+                <a class="secondary-button" href="./index.html" data-preserve-theme>
+                    New challenge
+                </a>
+            </div>
+        </div>
     </main>
 
     <script src="./database.js?v=20260715T200355"></script>
-    <script src="./game.js?v=flow-3"></script>
+    <script src="./game.js?v=flow-5"></script>
 </body>
 </html>

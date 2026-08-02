@@ -12,7 +12,8 @@ const elements = installFakeDocument([
     "status",
     "move-count",
     "timer",
-    "route-preview"
+    "route-preview",
+    "restart-challenge"
 ]);
 elements["song-suggestions"].hidden = true;
 globalThis.SONG_DATABASE = createDatabaseFixture();
