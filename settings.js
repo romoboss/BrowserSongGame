@@ -2,32 +2,56 @@
     const themeStorageKey = "music-link-theme";
     const resultLimitStorageKey = "music-link-result-limit";
     const uiTransparencyStorageKey = "music-link-ui-transparency";
+    const luckyConnectionsStorageKey = "music-link-lucky-connections";
+    const luckyLinkedSongsStorageKey = "music-link-lucky-linked-songs";
     const defaultResultLimit = 10;
     const minimumResultLimit = 1;
     const maximumResultLimit = 25;
     const defaultUiTransparency = 48;
     const minimumUiTransparency = 0;
     const maximumUiTransparency = 80;
-    const themes = [
-        { id: "white", label: "White" },
-        { id: "grey", label: "Light Grey" },
-        { id: "black", label: "Dark Grey" },
-        { id: "oled-black", label: "Black" },
-        { id: "blue", label: "Blue" },
-        { id: "dark-blue", label: "Dark Blue" },
-        { id: "purple", label: "Purple" },
-        { id: "dark-purple", label: "Dark Purple" },
-        { id: "red", label: "Red" },
-        { id: "dark-red", label: "Dark Red" },
-        { id: "green", label: "Green" },
-        { id: "dark-green", label: "Dark Green" },
-        { id: "yellow", label: "Yellow" },
-        { id: "dark-yellow", label: "Dark Yellow" },
-        { id: "cyan", label: "Cyan" },
-        { id: "dark-cyan", label: "Dark Cyan" },
-        { id: "pink", label: "Pink" },
-        { id: "dark-pink", label: "Dark Pink" }
+    const defaultLuckyConnections = 2;
+    const minimumLuckyConnections = 1;
+    const maximumLuckyConnections = 5;
+    const defaultLuckyLinkedSongs = 25;
+    const minimumLuckyLinkedSongs = 5;
+    const maximumLuckyLinkedSongs = 75;
+    const themeGroups = [
+        {
+            label: "Neutral",
+            themes: [
+                { id: "white", label: "White" },
+                { id: "grey", label: "Light Grey" },
+                { id: "black", label: "Dark Grey" },
+                { id: "oled-black", label: "Black" }
+            ]
+        },
+        {
+            label: "Light colors",
+            themes: [
+                { id: "blue", label: "Blue" },
+                { id: "purple", label: "Purple" },
+                { id: "red", label: "Red" },
+                { id: "green", label: "Green" },
+                { id: "yellow", label: "Yellow" },
+                { id: "cyan", label: "Cyan" },
+                { id: "pink", label: "Pink" }
+            ]
+        },
+        {
+            label: "Dark colors",
+            themes: [
+                { id: "dark-blue", label: "Dark Blue" },
+                { id: "dark-purple", label: "Dark Purple" },
+                { id: "dark-red", label: "Dark Red" },
+                { id: "dark-green", label: "Dark Green" },
+                { id: "dark-yellow", label: "Dark Yellow" },
+                { id: "dark-cyan", label: "Dark Cyan" },
+                { id: "dark-pink", label: "Dark Pink" }
+            ]
+        }
     ];
+    const themes = themeGroups.flatMap(group => group.themes);
     const validThemes = new Set(themes.map(theme => theme.id));
 
     function normalizeTheme(theme) {
@@ -45,11 +69,30 @@
     }
 
     function parseUiTransparency(value) {
+        if (value === null || value === undefined || value === "") return null;
         const transparency = Number(value);
         return Number.isInteger(transparency)
             && transparency >= minimumUiTransparency
             && transparency <= maximumUiTransparency
             ? transparency
+            : null;
+    }
+
+    function parseLuckyConnections(value) {
+        const connections = Number(value);
+        return Number.isInteger(connections)
+            && connections >= minimumLuckyConnections
+            && connections <= maximumLuckyConnections
+            ? connections
+            : null;
+    }
+
+    function parseLuckyLinkedSongs(value) {
+        const linkedSongs = Number(value);
+        return Number.isInteger(linkedSongs)
+            && linkedSongs >= minimumLuckyLinkedSongs
+            && linkedSongs <= maximumLuckyLinkedSongs
+            ? linkedSongs
             : null;
     }
 
@@ -109,6 +152,26 @@
         }
     }
 
+    function readStoredLuckyConnections() {
+        try {
+            return parseLuckyConnections(
+                globalThis.localStorage?.getItem(luckyConnectionsStorageKey)
+            ) ?? defaultLuckyConnections;
+        } catch {
+            return defaultLuckyConnections;
+        }
+    }
+
+    function readStoredLuckyLinkedSongs() {
+        try {
+            return parseLuckyLinkedSongs(
+                globalThis.localStorage?.getItem(luckyLinkedSongsStorageKey)
+            ) ?? defaultLuckyLinkedSongs;
+        } catch {
+            return defaultLuckyLinkedSongs;
+        }
+    }
+
     function storeTheme(theme) {
         try {
             globalThis.localStorage?.setItem(themeStorageKey, theme);
@@ -133,27 +196,42 @@
         }
     }
 
-    function addSettingsToLink(href, theme, resultLimit, transparency) {
-        const [beforeHash, hash = ""] = String(href).split("#", 2);
-        const [path, query = ""] = beforeHash.split("?", 2);
-        const parameters = new URLSearchParams(query);
-        parameters.set("theme", theme);
-        parameters.set("limit", String(resultLimit));
-        parameters.set("transparency", String(transparency));
-        return `${path}?${parameters}${hash ? `#${hash}` : ""}`;
+    function storeLuckyConnections(connections) {
+        try {
+            globalThis.localStorage?.setItem(luckyConnectionsStorageKey, String(connections));
+        } catch {
+            // Lucky selections still use the value for this page when storage is unavailable.
+        }
     }
 
-    function updateSettingsLinks(theme, resultLimit, transparency) {
-        if (typeof document.querySelectorAll !== "function") return;
+    function storeLuckyLinkedSongs(linkedSongs) {
+        try {
+            globalThis.localStorage?.setItem(luckyLinkedSongsStorageKey, String(linkedSongs));
+        } catch {
+            // Lucky selections still use the value for this page when storage is unavailable.
+        }
+    }
 
-        for (const link of document.querySelectorAll("a[data-preserve-theme]")) {
-            const href = link.getAttribute("href");
-            if (href) {
-                link.setAttribute(
-                    "href",
-                    addSettingsToLink(href, theme, resultLimit, transparency)
-                );
+    function removeLegacySettingsFromUrl() {
+        try {
+            const parameters = new URLSearchParams(globalThis.location?.search || "");
+            const legacyParameters = ["theme", "limit", "transparency"];
+            const removed = legacyParameters.some(parameter => parameters.has(parameter));
+            for (const parameter of legacyParameters) parameters.delete(parameter);
+            const pathname = globalThis.location?.pathname;
+            if (!removed || !pathname || typeof globalThis.history?.replaceState !== "function") {
+                return;
             }
+
+            const query = parameters.toString();
+            const hash = globalThis.location?.hash || "";
+            globalThis.history.replaceState(
+                globalThis.history.state,
+                "",
+                `${pathname}${query ? `?${query}` : ""}${hash}`
+            );
+        } catch {
+            // Old links still work if browser history cannot be rewritten.
         }
     }
 
@@ -168,11 +246,24 @@
         }
     }
 
-    let selectedTheme = readLocationTheme() || readStoredTheme();
-    let selectedResultLimit = readLocationResultLimit() ?? readStoredResultLimit();
-    let selectedUiTransparency = readLocationUiTransparency() ?? readStoredUiTransparency();
+    const locationTheme = readLocationTheme();
+    const locationResultLimit = readLocationResultLimit();
+    const locationUiTransparency = readLocationUiTransparency();
+    let selectedTheme = locationTheme || readStoredTheme();
+    let selectedResultLimit = locationResultLimit ?? readStoredResultLimit();
+    let selectedUiTransparency = locationUiTransparency ?? readStoredUiTransparency();
+    let selectedLuckyConnections = readStoredLuckyConnections();
+    let selectedLuckyLinkedSongs = readStoredLuckyLinkedSongs();
+
+    if (locationTheme) storeTheme(locationTheme);
+    if (locationResultLimit !== null) storeResultLimit(locationResultLimit);
+    if (locationUiTransparency !== null) storeUiTransparency(locationUiTransparency);
+    removeLegacySettingsFromUrl();
+
     document.documentElement.dataset.theme = selectedTheme;
     document.documentElement.dataset.resultLimit = String(selectedResultLimit);
+    document.documentElement.dataset.luckyConnections = String(selectedLuckyConnections);
+    document.documentElement.dataset.luckyLinkedSongs = String(selectedLuckyLinkedSongs);
     setPanelOpacity(selectedUiTransparency);
 
     function initializeSettings() {
@@ -186,10 +277,15 @@
         const header = document.createElement("div");
         const title = document.createElement("h2");
         const closeButton = document.createElement("button");
+        const closeIcon = document.createElement("span");
         const appearanceSection = document.createElement("div");
         const appearanceTitle = document.createElement("h3");
         const appearanceDescription = document.createElement("p");
-        const options = document.createElement("div");
+        const themeControl = document.createElement("div");
+        const themeSelectLabel = document.createElement("label");
+        const themeSelectWrapper = document.createElement("div");
+        const themeSwatch = document.createElement("span");
+        const themeSelect = document.createElement("select");
         const transparencySection = document.createElement("div");
         const transparencyTitle = document.createElement("h3");
         const transparencyDescription = document.createElement("p");
@@ -210,10 +306,30 @@
         const resultBounds = document.createElement("div");
         const resultMinimum = document.createElement("span");
         const resultMaximum = document.createElement("span");
+        const luckySection = document.createElement("div");
+        const luckyTitle = document.createElement("h3");
+        const luckyDescription = document.createElement("p");
+        const luckyHeader = document.createElement("div");
+        const luckyLabel = document.createElement("label");
+        const luckyValue = document.createElement("output");
+        const luckySlider = document.createElement("input");
+        const luckyBounds = document.createElement("div");
+        const luckyMinimum = document.createElement("span");
+        const luckyMaximum = document.createElement("span");
+        const linkedSongsHeader = document.createElement("div");
+        const linkedSongsLabel = document.createElement("label");
+        const linkedSongsValue = document.createElement("output");
+        const linkedSongsSlider = document.createElement("input");
+        const linkedSongsBounds = document.createElement("div");
+        const linkedSongsMinimum = document.createElement("span");
+        const linkedSongsMaximum = document.createElement("span");
         const contactSection = document.createElement("div");
         const contactTitle = document.createElement("h3");
         const contactDescription = document.createElement("p");
-        const optionButtons = [];
+        const pageContent = typeof document.querySelector === "function"
+            ? document.querySelector("main")
+            : null;
+        let previousBodyOverflow = "";
 
         launcherContainer.className = "settings-launcher-container";
         launcher.id = "settings-button";
@@ -247,8 +363,10 @@
         title.textContent = "Settings";
         closeButton.type = "button";
         closeButton.className = "settings-close-button";
-        closeButton.textContent = "×";
         closeButton.setAttribute("aria-label", "Close settings");
+        closeIcon.className = "settings-close-icon";
+        closeIcon.setAttribute("aria-hidden", "true");
+        closeButton.appendChild(closeIcon);
         header.appendChild(title);
         header.appendChild(closeButton);
 
@@ -257,17 +375,22 @@
         appearanceTitle.textContent = "Appearance";
         appearanceDescription.className = "settings-section-description";
         appearanceDescription.textContent = "Choose a color theme for every page.";
-        options.className = "theme-options";
-        options.setAttribute("role", "group");
-        options.setAttribute("aria-label", "Color theme");
+        themeControl.className = "theme-select-control";
+        themeSelectLabel.className = "settings-control-label";
+        themeSelectLabel.htmlFor = "theme-select";
+        themeSelectLabel.textContent = "Color theme";
+        themeSelectWrapper.className = "theme-select-wrapper";
+        themeSwatch.className = `theme-swatch theme-swatch-${selectedTheme}`;
+        themeSwatch.setAttribute("aria-hidden", "true");
+        themeSelect.id = "theme-select";
+        themeSelect.className = "theme-select";
+        themeSelect.setAttribute("aria-label", "Color theme");
 
         function applyTheme(theme, persist = true) {
             selectedTheme = normalizeTheme(theme) || "white";
             document.documentElement.dataset.theme = selectedTheme;
-            for (const button of optionButtons) {
-                button.setAttribute("aria-pressed", String(button.dataset.theme === selectedTheme));
-            }
-            updateSettingsLinks(selectedTheme, selectedResultLimit, selectedUiTransparency);
+            themeSelect.value = selectedTheme;
+            themeSwatch.className = `theme-swatch theme-swatch-${selectedTheme}`;
             if (persist) storeTheme(selectedTheme);
         }
 
@@ -276,7 +399,6 @@
             document.documentElement.dataset.resultLimit = String(selectedResultLimit);
             resultSlider.value = String(selectedResultLimit);
             resultValue.textContent = String(selectedResultLimit);
-            updateSettingsLinks(selectedTheme, selectedResultLimit, selectedUiTransparency);
             if (persist) storeResultLimit(selectedResultLimit);
         }
 
@@ -290,33 +412,51 @@
                 "aria-valuetext",
                 `${selectedUiTransparency}% transparent`
             );
-            updateSettingsLinks(selectedTheme, selectedResultLimit, selectedUiTransparency);
             if (persist) storeUiTransparency(selectedUiTransparency);
         }
 
-        for (const theme of themes) {
-            const button = document.createElement("button");
-            const swatch = document.createElement("span");
-            const label = document.createElement("span");
-
-            button.type = "button";
-            button.className = "theme-option";
-            button.dataset.theme = theme.id;
-            button.setAttribute("aria-label", `${theme.label} theme`);
-            button.setAttribute("aria-pressed", "false");
-            swatch.className = `theme-swatch theme-swatch-${theme.id}`;
-            swatch.setAttribute("aria-hidden", "true");
-            label.textContent = theme.label;
-            button.appendChild(swatch);
-            button.appendChild(label);
-            button.addEventListener("click", () => applyTheme(theme.id));
-            optionButtons.push(button);
-            options.appendChild(button);
+        function applyLuckyConnections(connections, persist = true) {
+            selectedLuckyConnections = parseLuckyConnections(connections)
+                ?? defaultLuckyConnections;
+            const label = `${selectedLuckyConnections} connection${selectedLuckyConnections === 1 ? "" : "s"}`;
+            document.documentElement.dataset.luckyConnections = String(selectedLuckyConnections);
+            luckySlider.value = String(selectedLuckyConnections);
+            luckyValue.textContent = String(selectedLuckyConnections);
+            luckySlider.setAttribute("aria-valuetext", label);
+            if (persist) storeLuckyConnections(selectedLuckyConnections);
         }
+
+        function applyLuckyLinkedSongs(linkedSongs, persist = true) {
+            selectedLuckyLinkedSongs = parseLuckyLinkedSongs(linkedSongs)
+                ?? defaultLuckyLinkedSongs;
+            const label = `${selectedLuckyLinkedSongs} linked song${selectedLuckyLinkedSongs === 1 ? "" : "s"}`;
+            document.documentElement.dataset.luckyLinkedSongs = String(selectedLuckyLinkedSongs);
+            linkedSongsSlider.value = String(selectedLuckyLinkedSongs);
+            linkedSongsValue.textContent = String(selectedLuckyLinkedSongs);
+            linkedSongsSlider.setAttribute("aria-valuetext", label);
+            if (persist) storeLuckyLinkedSongs(selectedLuckyLinkedSongs);
+        }
+
+        for (const group of themeGroups) {
+            const optionGroup = document.createElement("optgroup");
+            optionGroup.label = group.label;
+            for (const theme of group.themes) {
+                const option = document.createElement("option");
+                option.value = theme.id;
+                option.textContent = theme.label;
+                optionGroup.appendChild(option);
+            }
+            themeSelect.appendChild(optionGroup);
+        }
+        themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
+        themeSelectWrapper.appendChild(themeSwatch);
+        themeSelectWrapper.appendChild(themeSelect);
+        themeControl.appendChild(themeSelectLabel);
+        themeControl.appendChild(themeSelectWrapper);
 
         appearanceSection.appendChild(appearanceTitle);
         appearanceSection.appendChild(appearanceDescription);
-        appearanceSection.appendChild(options);
+        appearanceSection.appendChild(themeControl);
 
         transparencySection.className = "settings-section";
         transparencyTitle.className = "settings-section-title";
@@ -397,6 +537,84 @@
         resultSection.appendChild(resultSlider);
         resultSection.appendChild(resultBounds);
 
+        luckySection.className = "settings-section";
+        luckyTitle.className = "settings-section-title";
+        luckyTitle.textContent = "Lucky challenge";
+        luckyDescription.className = "settings-section-description";
+        luckyDescription.textContent = "Tune the route length and how well-connected each random endpoint must be.";
+        luckyHeader.className = "settings-range-header";
+        luckyLabel.className = "settings-range-label";
+        luckyLabel.textContent = "Required connections";
+        luckyLabel.htmlFor = "lucky-connections";
+        luckyValue.className = "settings-range-value";
+        luckyValue.textContent = String(selectedLuckyConnections);
+        luckyValue.setAttribute("for", "lucky-connections");
+        luckyHeader.appendChild(luckyLabel);
+        luckyHeader.appendChild(luckyValue);
+        luckySlider.id = "lucky-connections";
+        luckySlider.className = "settings-range";
+        luckySlider.type = "range";
+        luckySlider.min = String(minimumLuckyConnections);
+        luckySlider.max = String(maximumLuckyConnections);
+        luckySlider.step = "1";
+        luckySlider.value = String(selectedLuckyConnections);
+        luckySlider.setAttribute("aria-valuemin", String(minimumLuckyConnections));
+        luckySlider.setAttribute("aria-valuemax", String(maximumLuckyConnections));
+        luckySlider.setAttribute(
+            "aria-valuetext",
+            `${selectedLuckyConnections} connection${selectedLuckyConnections === 1 ? "" : "s"}`
+        );
+        luckySlider.addEventListener(
+            "input",
+            () => applyLuckyConnections(luckySlider.value)
+        );
+        luckyBounds.className = "settings-range-bounds";
+        luckyBounds.setAttribute("aria-hidden", "true");
+        luckyMinimum.textContent = "1 (direct)";
+        luckyMaximum.textContent = String(maximumLuckyConnections);
+        luckyBounds.appendChild(luckyMinimum);
+        luckyBounds.appendChild(luckyMaximum);
+        luckySection.appendChild(luckyTitle);
+        luckySection.appendChild(luckyDescription);
+        luckySection.appendChild(luckyHeader);
+        luckySection.appendChild(luckySlider);
+        luckySection.appendChild(luckyBounds);
+        linkedSongsHeader.className = "settings-range-header settings-subcontrol";
+        linkedSongsLabel.className = "settings-range-label";
+        linkedSongsLabel.textContent = "Required linked songs";
+        linkedSongsLabel.htmlFor = "lucky-linked-songs";
+        linkedSongsValue.className = "settings-range-value";
+        linkedSongsValue.textContent = String(selectedLuckyLinkedSongs);
+        linkedSongsValue.setAttribute("for", "lucky-linked-songs");
+        linkedSongsHeader.appendChild(linkedSongsLabel);
+        linkedSongsHeader.appendChild(linkedSongsValue);
+        linkedSongsSlider.id = "lucky-linked-songs";
+        linkedSongsSlider.className = "settings-range";
+        linkedSongsSlider.type = "range";
+        linkedSongsSlider.min = String(minimumLuckyLinkedSongs);
+        linkedSongsSlider.max = String(maximumLuckyLinkedSongs);
+        linkedSongsSlider.step = "1";
+        linkedSongsSlider.value = String(selectedLuckyLinkedSongs);
+        linkedSongsSlider.setAttribute("aria-valuemin", String(minimumLuckyLinkedSongs));
+        linkedSongsSlider.setAttribute("aria-valuemax", String(maximumLuckyLinkedSongs));
+        linkedSongsSlider.setAttribute(
+            "aria-valuetext",
+            `${selectedLuckyLinkedSongs} linked song${selectedLuckyLinkedSongs === 1 ? "" : "s"}`
+        );
+        linkedSongsSlider.addEventListener(
+            "input",
+            () => applyLuckyLinkedSongs(linkedSongsSlider.value)
+        );
+        linkedSongsBounds.className = "settings-range-bounds";
+        linkedSongsBounds.setAttribute("aria-hidden", "true");
+        linkedSongsMinimum.textContent = String(minimumLuckyLinkedSongs);
+        linkedSongsMaximum.textContent = String(maximumLuckyLinkedSongs);
+        linkedSongsBounds.appendChild(linkedSongsMinimum);
+        linkedSongsBounds.appendChild(linkedSongsMaximum);
+        luckySection.appendChild(linkedSongsHeader);
+        luckySection.appendChild(linkedSongsSlider);
+        luckySection.appendChild(linkedSongsBounds);
+
         contactSection.className = "settings-section settings-contact settings-future";
         contactTitle.className = "settings-section-title";
         contactTitle.textContent = "Requests and Feedback";
@@ -409,11 +627,15 @@
         panel.appendChild(appearanceSection);
         panel.appendChild(transparencySection);
         panel.appendChild(resultSection);
+        panel.appendChild(luckySection);
         panel.appendChild(contactSection);
 
         function openPanel() {
             panel.hidden = false;
             scrim.hidden = false;
+            if (pageContent) pageContent.inert = true;
+            previousBodyOverflow = document.body.style.overflow || "";
+            document.body.style.overflow = "hidden";
             launcher.setAttribute("aria-expanded", "true");
             closeButton.focus();
         }
@@ -421,6 +643,8 @@
         function closePanel() {
             panel.hidden = true;
             scrim.hidden = true;
+            if (pageContent) pageContent.inert = false;
+            document.body.style.overflow = previousBodyOverflow;
             launcher.setAttribute("aria-expanded", "false");
             launcher.focus();
         }
@@ -429,7 +653,28 @@
         closeButton.addEventListener("click", closePanel);
         scrim.addEventListener("click", closePanel);
         document.addEventListener("keydown", event => {
-            if (event.key === "Escape" && !panel.hidden) closePanel();
+            if (panel.hidden) return;
+            if (event.key === "Escape") {
+                closePanel();
+                return;
+            }
+            if (event.key !== "Tab" || typeof panel.querySelectorAll !== "function") return;
+
+            const focusable = [...panel.querySelectorAll(
+                "button:not([disabled]), select:not([disabled]), input:not([disabled]), "
+                + "a[href], [tabindex]:not([tabindex='-1'])"
+            )];
+            if (focusable.length === 0) return;
+
+            const first = focusable[0];
+            const last = focusable.at(-1);
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         });
 
         document.body.appendChild(scrim);
@@ -438,6 +683,8 @@
         applyTheme(selectedTheme, false);
         applyResultLimit(selectedResultLimit, false);
         applyUiTransparency(selectedUiTransparency, false);
+        applyLuckyConnections(selectedLuckyConnections, false);
+        applyLuckyLinkedSongs(selectedLuckyLinkedSongs, false);
     }
 
     if (document.readyState === "loading") {

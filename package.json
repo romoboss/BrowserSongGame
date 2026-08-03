@@ -6,6 +6,6 @@
   "type": "module",
   "scripts": {
     "build:database": "node build-database.js",
-    "test": "node --test test/setup.test.js test/share-fallback.test.js test/game-flow.test.js test/target-dead-end.test.js test/results.test.js test/settings.test.js"
+    "test": "node --test test/setup.test.js test/share-fallback.test.js test/game-flow.test.js test/target-dead-end.test.js test/results.test.js test/settings.test.js test/settings-clean-load.test.js test/theme-buttons.test.js test/navigation.test.js test/daily.test.js test/daily-progress.test.js test/daily-results.test.js test/archive.test.js test/privacy.test.js"
   }
 }

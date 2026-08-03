@@ -9,6 +9,7 @@ const startButton = document.getElementById("start-game");
 const luckyButton = document.getElementById("lucky-button");
 const shareButton = document.getElementById("share-link");
 const statusElement = document.getElementById("setup-status");
+const canonicalSiteUrl = "https://songaveler.romoboss.com/";
 
 let selectedStartArtist = null;
 let selectedEndArtist = null;
@@ -16,6 +17,7 @@ let reachableEndIds = null;
 let startPicker = null;
 let endPicker = null;
 const reachabilityCache = new Map();
+const distanceCache = new Map();
 
 function normalize(value) {
     return String(value)
@@ -37,31 +39,30 @@ function getMaximumSuggestions() {
         : 10;
 }
 
-function getUiTransparency() {
-    const transparency = Number(document.documentElement.dataset.uiTransparency);
-    return Number.isInteger(transparency) && transparency >= 0 && transparency <= 80
-        ? transparency
-        : 48;
+function getLuckyConnections() {
+    const connections = Number(document.documentElement.dataset.luckyConnections);
+    return Number.isInteger(connections) && connections >= 1
+        ? connections
+        : 2;
 }
 
-function getChallengeParameters(includeSettings = true) {
-    const parameters = new URLSearchParams({
+function getLuckyLinkedSongs() {
+    const linkedSongs = Number(document.documentElement.dataset.luckyLinkedSongs);
+    return Number.isInteger(linkedSongs) && linkedSongs >= 1
+        ? linkedSongs
+        : 25;
+}
+
+function getChallengeParameters() {
+    return new URLSearchParams({
         start: selectedStartArtist.id,
         end: selectedEndArtist.id
     });
-
-    if (includeSettings) {
-        parameters.set("theme", document.documentElement.dataset.theme || "white");
-        parameters.set("limit", String(getMaximumSuggestions()));
-        parameters.set("transparency", String(getUiTransparency()));
-    }
-
-    return parameters;
 }
 
-function getShareUrl(includeSettings = true) {
-    const shareUrl = new URL("./game.html", globalThis.location.href);
-    shareUrl.search = getChallengeParameters(includeSettings).toString();
+function getShareUrl() {
+    const shareUrl = new URL("./game.html", canonicalSiteUrl);
+    shareUrl.search = getChallengeParameters().toString();
     shareUrl.hash = "";
     return shareUrl.href;
 }
@@ -97,16 +98,12 @@ async function shareChallenge() {
         return;
     }
 
-    const shareUrl = getShareUrl(false);
+    const shareUrl = getShareUrl();
     shareButton.disabled = true;
 
     try {
         await copyText(shareUrl);
-        setStatus(
-            shareUrl.startsWith("file:")
-                ? "Local challenge link copied. It will only work on this computer."
-                : "Challenge link copied to your clipboard."
-        );
+        setStatus("Challenge link copied to your clipboard.");
     } catch (error) {
         console.error("Could not copy challenge link:", error);
         setStatus(`Could not copy automatically. Copy this link: ${shareUrl}`, true);
@@ -136,33 +133,37 @@ function findReachableArtists(startId) {
     const cacheKey = String(startId);
     if (reachabilityCache.has(cacheKey)) return reachabilityCache.get(cacheKey);
 
-    const reachable = new Set();
-    const traversed = new Set([cacheKey]);
+    const reachable = new Set(findArtistDistances(cacheKey).keys());
+    reachable.delete(cacheKey);
+    reachabilityCache.set(cacheKey, reachable);
+    return reachable;
+}
+
+function findArtistDistances(startId) {
+    const cacheKey = String(startId);
+    if (distanceCache.has(cacheKey)) return distanceCache.get(cacheKey);
+
+    const distances = new Map([[cacheKey, 0]]);
     const queue = [cacheKey];
 
     while (queue.length > 0) {
         const artistId = queue.shift();
+        const nextDistance = distances.get(artistId) + 1;
         for (const songId of database.artistSongs[artistId] || []) {
             for (const nextArtistId of database.songData[songId]?.artists || []) {
                 const nextId = String(nextArtistId);
-                if (nextId === cacheKey) continue;
+                if (distances.has(nextId)) continue;
 
-                reachable.add(nextId);
-                if (!traversed.has(nextId) && (database.artistSongs[nextId] || []).length !== 1) {
-                    traversed.add(nextId);
+                distances.set(nextId, nextDistance);
+                if ((database.artistSongs[nextId] || []).length !== 1) {
                     queue.push(nextId);
                 }
             }
         }
     }
 
-    reachabilityCache.set(cacheKey, reachable);
-    return reachable;
-}
-
-function artistsShareSong(leftId, rightId) {
-    const leftSongs = new Set(database.artistSongs[leftId] || []);
-    return (database.artistSongs[rightId] || []).some(songId => leftSongs.has(songId));
+    distanceCache.set(cacheKey, distances);
+    return distances;
 }
 
 function getArtistRecord(id) {
@@ -318,16 +319,24 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
 }
 
 function chooseLuckyArtists() {
+    const requiredLinkedSongs = getLuckyLinkedSongs();
     const candidates = Object.keys(database.artists)
-        .filter(id => (database.artistSongs[id] || []).length >= 10);
-    const shuffledStarts = [...candidates].sort(() => Math.random() - 0.5);
+        .filter(id => (database.artistSongs[id] || []).length >= requiredLinkedSongs);
+    const shuffledStarts = [...candidates];
+    for (let index = shuffledStarts.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [shuffledStarts[index], shuffledStarts[swapIndex]] = [
+            shuffledStarts[swapIndex],
+            shuffledStarts[index]
+        ];
+    }
+    const requiredConnections = getLuckyConnections();
 
     for (const startId of shuffledStarts) {
-        const reachable = findReachableArtists(startId);
+        const distances = findArtistDistances(startId);
         const possibleEnds = candidates.filter(endId =>
             endId !== startId
-            && reachable.has(endId)
-            && !artistsShareSong(startId, endId)
+            && distances.get(endId) === requiredConnections
         );
 
         if (possibleEnds.length === 0) continue;
@@ -335,10 +344,20 @@ function chooseLuckyArtists() {
         const endId = possibleEnds[Math.floor(Math.random() * possibleEnds.length)];
         startPicker.select(getArtistRecord(startId));
         endPicker.select(getArtistRecord(endId));
+        setStatus(
+            `${database.artists[startId]} to ${database.artists[endId]}. `
+            + `${requiredConnections} connection${requiredConnections === 1 ? "" : "s"} apart and ready to play.`
+        );
         return;
     }
 
-    setStatus("No eligible random challenge was found in this database.", true);
+    setStatus(
+        `No eligible random challenge with ${requiredConnections} `
+        + `connection${requiredConnections === 1 ? "" : "s"} and at least `
+        + `${requiredLinkedSongs} linked song${requiredLinkedSongs === 1 ? "" : "s"} `
+        + "per artist was found.",
+        true
+    );
 }
 
 function initialize() {

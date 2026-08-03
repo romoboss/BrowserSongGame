@@ -20,6 +20,9 @@ let activeSuggestionIndex = -1;
 let route = [];
 let startedAt = 0;
 let timerHandle = null;
+let dailyDateKey = null;
+let isArchiveChallenge = false;
+let isFirstDailyAttempt = false;
 
 function normalize(value) {
     return String(value)
@@ -39,13 +42,6 @@ function getMaximumSuggestions() {
     return Number.isInteger(resultLimit) && resultLimit >= 1 && resultLimit <= 25
         ? resultLimit
         : 10;
-}
-
-function getUiTransparency() {
-    const transparency = Number(document.documentElement.dataset.uiTransparency);
-    return Number.isInteger(transparency) && transparency >= 0 && transparency <= 80
-        ? transparency
-        : 48;
 }
 
 function getArtist(id) {
@@ -126,19 +122,48 @@ function updateTimer() {
 function renderRoutePreview() {
     routePreviewElement.replaceChildren();
 
-    for (const step of route) {
+    for (const [index, step] of route.entries()) {
         const item = document.createElement("li");
+        const node = document.createElement("div");
+        const label = document.createElement("span");
         const artist = getArtist(step.artistId);
-        item.textContent = artist?.name || "Unknown artist";
-        if (step.songId) item.title = `via ${database.songs[step.songId]}`;
+        const artistName = document.createElement("strong");
+        const song = document.createElement("span");
+
+        item.className = "route-step";
+        item.classList.add(index === 0 ? "is-start" : "is-move");
+        if (index === route.length - 1) item.classList.add("is-current");
+        node.className = "route-node";
+        label.className = "route-step-label";
+        label.textContent = index === 0 ? "Start" : `Move ${index}`;
+        artistName.className = "route-artist";
+        artistName.textContent = artist?.name || "Unknown artist";
+        song.className = "route-song";
+        song.textContent = step.songId
+            ? `via ${database.songs[step.songId] || "Unknown song"}`
+            : "Starting artist";
+
+        node.appendChild(label);
+        node.appendChild(artistName);
+        node.appendChild(song);
+        item.appendChild(node);
         routePreviewElement.appendChild(item);
     }
+
+    const previewContainer = routePreviewElement.parentElement;
+    if (previewContainer) previewContainer.scrollLeft = previewContainer.scrollWidth;
 }
 
 function encodeRoute() {
     return route
         .map((step, index) => index === 0 ? step.artistId : `${step.songId}:${step.artistId}`)
         .join("|");
+}
+
+function isValidDateKey(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function finishGame() {
@@ -151,13 +176,12 @@ function finishGame() {
         elapsed: String(Math.max(0, Date.now() - startedAt)),
         route: encodeRoute()
     });
-    const theme = document.documentElement.dataset.theme || "white";
-    const pageParameters = new URLSearchParams({
-        theme,
-        limit: String(getMaximumSuggestions()),
-        transparency: String(getUiTransparency())
-    });
-    const resultsUrl = `./results.html?${pageParameters}#${parameters}`;
+    if (dailyDateKey) {
+        parameters.set("daily", dailyDateKey);
+        if (isArchiveChallenge) parameters.set("archive", "1");
+        if (isFirstDailyAttempt) parameters.set("first", "1");
+    }
+    const resultsUrl = `./results.html#${parameters}`;
 
     if (typeof globalThis.location.replace === "function") {
         globalThis.location.replace(resultsUrl);
@@ -334,6 +358,14 @@ function initialize() {
     const parameters = new URLSearchParams(globalThis.location.search || "");
     startArtist = getArtist(parameters.get("start"));
     targetArtist = getArtist(parameters.get("end"));
+    const requestedDailyDate = parameters.get("daily");
+    dailyDateKey = isValidDateKey(requestedDailyDate) ? requestedDailyDate : null;
+    isArchiveChallenge = Boolean(dailyDateKey && parameters.get("archive") === "1");
+    isFirstDailyAttempt = Boolean(
+        dailyDateKey
+        && !isArchiveChallenge
+        && parameters.get("first") === "1"
+    );
 
     if (!startArtist || !targetArtist || startArtist.id === targetArtist.id) {
         searchInput.disabled = true;

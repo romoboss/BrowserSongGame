@@ -8,10 +8,14 @@ const documentListeners = new Map();
 const storedValues = new Map([
     ["music-link-theme", "black"],
     ["music-link-result-limit", "7"],
-    ["music-link-ui-transparency", "30"]
+    ["music-link-ui-transparency", "30"],
+    ["music-link-lucky-connections", "4"],
+    ["music-link-lucky-linked-songs", "12"]
 ]);
 preservedLink.setAttribute("href", "./index.html");
 body.appendChild(preservedLink);
+
+let replacedUrl = "";
 
 globalThis.localStorage = {
     getItem: key => storedValues.get(key) ?? null,
@@ -35,7 +39,19 @@ globalThis.document = {
         documentListeners.set(type, listener);
     }
 };
-globalThis.location = { search: "?theme=dark-blue&limit=18&transparency=62" };
+globalThis.location = {
+    search: "?start=1&end=3&theme=dark-blue&limit=18&transparency=62",
+    pathname: "/music/game.html",
+    hash: "#route-data"
+};
+globalThis.history = {
+    state: { test: true },
+    replaceState(state, title, url) {
+        assert.deepEqual(state, { test: true });
+        assert.equal(title, "");
+        replacedUrl = url;
+    }
+};
 
 function findElement(root, predicate) {
     if (predicate(root)) return root;
@@ -46,53 +62,68 @@ function findElement(root, predicate) {
     return null;
 }
 
-function findElements(root, predicate, matches = []) {
-    if (predicate(root)) matches.push(root);
-    for (const child of root.children) findElements(child, predicate, matches);
-    return matches;
-}
-
 await import("../settings.js");
 
-test("settings loads, applies, and stores appearance themes", () => {
+test("settings migrates legacy URL values and stores all controls locally", () => {
     assert.equal(document.documentElement.dataset.theme, "dark-blue");
     assert.equal(document.documentElement.dataset.resultLimit, "18");
     assert.equal(document.documentElement.dataset.uiTransparency, "62");
+    assert.equal(document.documentElement.dataset.luckyConnections, "4");
+    assert.equal(document.documentElement.dataset.luckyLinkedSongs, "12");
     assert.equal(document.documentElement.style["--ui-panel-opacity"], "38%");
-    assert.equal(
-        preservedLink.getAttribute("href"),
-        "./index.html?theme=dark-blue&limit=18&transparency=62"
-    );
+    assert.equal(storedValues.get("music-link-theme"), "dark-blue");
+    assert.equal(storedValues.get("music-link-result-limit"), "18");
+    assert.equal(storedValues.get("music-link-ui-transparency"), "62");
+    assert.equal(storedValues.get("music-link-lucky-connections"), "4");
+    assert.equal(storedValues.get("music-link-lucky-linked-songs"), "12");
+    assert.equal(replacedUrl, "/music/game.html?start=1&end=3#route-data");
+    assert.equal(preservedLink.getAttribute("href"), "./index.html");
 
     const launcher = findElement(body, element => element.id === "settings-button");
     const panel = findElement(body, element => element.id === "settings-panel");
+    const closeButton = findElement(
+        panel,
+        element => String(element.className).includes("settings-close-button")
+    );
+    const closeIcon = findElement(
+        panel,
+        element => String(element.className).includes("settings-close-icon")
+    );
     assert.ok(launcher);
     assert.ok(panel);
+    assert.ok(closeButton);
+    assert.ok(closeIcon);
+    assert.equal(closeButton.getAttribute("aria-label"), "Close settings");
+    assert.equal(closeIcon.getAttribute("aria-hidden"), "true");
     assert.equal(panel.hidden, true);
 
     launcher.dispatch("click");
     assert.equal(panel.hidden, false);
 
-    const darkPurpleOption = findElement(
-        panel,
-        element => element.dataset.theme === "dark-purple"
+    const themeSelect = findElement(panel, element => element.id === "theme-select");
+    assert.ok(themeSelect);
+    assert.equal(themeSelect.value, "dark-blue");
+    assert.equal(themeSelect.children.length, 3);
+    assert.deepEqual(
+        themeSelect.children.map(group => group.label),
+        ["Neutral", "Light colors", "Dark colors"]
     );
-    assert.ok(darkPurpleOption);
-    assert.ok(findElement(panel, element => element.dataset.theme === "oled-black"));
-    assert.equal(findElement(panel, element => element.dataset.theme === "midnight"), null);
-    assert.equal(findElement(panel, element => element.dataset.theme === "deep-space"), null);
-    assert.equal(
-        findElements(panel, element => Boolean(element.dataset.theme)).length,
-        18
-    );
-    darkPurpleOption.dispatch("click");
+    const themeOptions = themeSelect.children.flatMap(group => group.children);
+    assert.equal(themeOptions.length, 18);
+    assert.ok(themeOptions.some(option => option.value === "oled-black"));
+    assert.equal(themeOptions.some(option => option.value === "midnight"), false);
+    assert.equal(themeOptions.some(option => option.value === "deep-space"), false);
+
+    themeSelect.value = "dark-purple";
+    themeSelect.dispatch("change");
     assert.equal(document.documentElement.dataset.theme, "dark-purple");
+    assert.equal(themeSelect.value, "dark-purple");
     assert.equal(storedValues.get("music-link-theme"), "dark-purple");
-    assert.equal(
-        preservedLink.getAttribute("href"),
-        "./index.html?theme=dark-purple&limit=18&transparency=62"
-    );
-    assert.equal(darkPurpleOption.attributes.get("aria-pressed"), "true");
+    assert.equal(preservedLink.getAttribute("href"), "./index.html");
+    assert.ok(findElement(
+        panel,
+        element => String(element.className).includes("theme-swatch-dark-purple")
+    ));
 
     const resultSlider = findElement(panel, element => element.id === "result-limit");
     assert.ok(resultSlider);
@@ -103,10 +134,6 @@ test("settings loads, applies, and stores appearance themes", () => {
     resultSlider.dispatch("input");
     assert.equal(document.documentElement.dataset.resultLimit, "25");
     assert.equal(storedValues.get("music-link-result-limit"), "25");
-    assert.equal(
-        preservedLink.getAttribute("href"),
-        "./index.html?theme=dark-purple&limit=25&transparency=62"
-    );
 
     const transparencySlider = findElement(panel, element => element.id === "ui-transparency");
     assert.ok(transparencySlider);
@@ -118,10 +145,30 @@ test("settings loads, applies, and stores appearance themes", () => {
     assert.equal(document.documentElement.dataset.uiTransparency, "70");
     assert.equal(document.documentElement.style["--ui-panel-opacity"], "30%");
     assert.equal(storedValues.get("music-link-ui-transparency"), "70");
-    assert.equal(
-        preservedLink.getAttribute("href"),
-        "./index.html?theme=dark-purple&limit=25&transparency=70"
-    );
+
+    const luckySlider = findElement(panel, element => element.id === "lucky-connections");
+    assert.ok(luckySlider);
+    assert.equal(luckySlider.min, "1");
+    assert.equal(luckySlider.max, "5");
+    assert.equal(luckySlider.value, "4");
+    assert.equal(luckySlider.attributes.get("aria-valuetext"), "4 connections");
+    luckySlider.value = "1";
+    luckySlider.dispatch("input");
+    assert.equal(document.documentElement.dataset.luckyConnections, "1");
+    assert.equal(storedValues.get("music-link-lucky-connections"), "1");
+    assert.equal(luckySlider.attributes.get("aria-valuetext"), "1 connection");
+
+    const linkedSongsSlider = findElement(panel, element => element.id === "lucky-linked-songs");
+    assert.ok(linkedSongsSlider);
+    assert.equal(linkedSongsSlider.min, "5");
+    assert.equal(linkedSongsSlider.max, "75");
+    assert.equal(linkedSongsSlider.value, "12");
+    assert.equal(linkedSongsSlider.attributes.get("aria-valuetext"), "12 linked songs");
+    linkedSongsSlider.value = "5";
+    linkedSongsSlider.dispatch("input");
+    assert.equal(document.documentElement.dataset.luckyLinkedSongs, "5");
+    assert.equal(storedValues.get("music-link-lucky-linked-songs"), "5");
+    assert.equal(linkedSongsSlider.attributes.get("aria-valuetext"), "5 linked songs");
 
     const futureSection = findElement(
         panel,

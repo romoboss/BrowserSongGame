@@ -72,7 +72,14 @@ export function installFakeDocument(ids) {
     globalThis.document = {
         body: new FakeElement("body"),
         title: "",
-        documentElement: { dataset: { theme: "white", resultLimit: "10" } },
+        documentElement: {
+            dataset: {
+                theme: "white",
+                resultLimit: "10",
+                luckyConnections: "2",
+                luckyLinkedSongs: "25"
+            }
+        },
         createElement: () => new FakeElement(),
         getElementById: id => elements[id] || null
     };

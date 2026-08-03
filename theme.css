@@ -117,6 +117,138 @@
     --text-outline-color: #000000;
 }
 
+/*
+ * Menu and Settings are persistent controls, so each color theme gives them
+ * a distinct pair of colors instead of falling back to the shared utility
+ * button palette.
+ */
+:root,
+:root[data-theme="white"] {
+    --menu-button-color: #168f91;
+    --menu-button-hover: #0b6d70;
+    --settings-button-color: #6f58b7;
+    --settings-button-hover: #503795;
+}
+
+:root[data-theme="grey"] {
+    --menu-button-color: #456b83;
+    --menu-button-hover: #304f64;
+    --settings-button-color: #86566c;
+    --settings-button-hover: #64394d;
+}
+
+:root[data-theme="black"] {
+    --menu-button-color: #2777b8;
+    --menu-button-hover: #145786;
+    --settings-button-color: #8d55b5;
+    --settings-button-hover: #693689;
+}
+
+:root[data-theme="oled-black"] {
+    --menu-button-color: #0b7f82;
+    --menu-button-hover: #075b5d;
+    --settings-button-color: #953a78;
+    --settings-button-hover: #6c2856;
+}
+
+:root[data-theme="blue"] {
+    --menu-button-color: #246fce;
+    --menu-button-hover: #18549f;
+    --settings-button-color: #6a58c9;
+    --settings-button-hover: #4d3ca2;
+}
+
+:root[data-theme="purple"] {
+    --menu-button-color: #7540aa;
+    --menu-button-hover: #562b82;
+    --settings-button-color: #b33e7c;
+    --settings-button-hover: #892a5d;
+}
+
+:root[data-theme="red"] {
+    --menu-button-color: #b93442;
+    --menu-button-hover: #8d222d;
+    --settings-button-color: #c06a2b;
+    --settings-button-hover: #914b19;
+}
+
+:root[data-theme="green"] {
+    --menu-button-color: #257849;
+    --menu-button-hover: #185d36;
+    --settings-button-color: #168083;
+    --settings-button-hover: #0c5f62;
+}
+
+:root[data-theme="yellow"] {
+    --menu-button-color: #9a6500;
+    --menu-button-hover: #744900;
+    --settings-button-color: #b54f2a;
+    --settings-button-hover: #873719;
+}
+
+:root[data-theme="cyan"] {
+    --menu-button-color: #087e8b;
+    --menu-button-hover: #055d67;
+    --settings-button-color: #356eb4;
+    --settings-button-hover: #24528a;
+}
+
+:root[data-theme="pink"] {
+    --menu-button-color: #bc3d76;
+    --menu-button-hover: #902a58;
+    --settings-button-color: #7353b5;
+    --settings-button-hover: #543791;
+}
+
+:root[data-theme="dark-blue"] {
+    --menu-button-color: #2e82d0;
+    --menu-button-hover: #1e609e;
+    --settings-button-color: #8f68d5;
+    --settings-button-hover: #6949a7;
+}
+
+:root[data-theme="dark-purple"] {
+    --menu-button-color: #8d55c2;
+    --menu-button-hover: #673a94;
+    --settings-button-color: #cf4f8e;
+    --settings-button-hover: #9d3268;
+}
+
+:root[data-theme="dark-red"] {
+    --menu-button-color: #d14a55;
+    --menu-button-hover: #9e3039;
+    --settings-button-color: #d77a3b;
+    --settings-button-hover: #a35524;
+}
+
+:root[data-theme="dark-green"] {
+    --menu-button-color: #2f9660;
+    --menu-button-hover: #1e7046;
+    --settings-button-color: #20a0a4;
+    --settings-button-hover: #147679;
+}
+
+:root[data-theme="dark-yellow"] {
+    --menu-button-color: #bd861e;
+    --menu-button-hover: #8f6312;
+    --settings-button-color: #db6538;
+    --settings-button-hover: #a74724;
+}
+
+:root[data-theme="dark-cyan"] {
+    --menu-button-color: #109ba8;
+    --menu-button-hover: #0a727c;
+    --settings-button-color: #4c86ce;
+    --settings-button-hover: #34629d;
+}
+
+:root[data-theme="dark-pink"] {
+    --menu-button-color: #d04b84;
+    --menu-button-hover: #9d315f;
+    --settings-button-color: #8966ca;
+    --settings-button-hover: #63479b;
+}
+
 /* Let each palette control how strongly the paper texture shows through. */
 :root[data-theme="white"] { --background-veil-start: 62%; --background-veil-end: 72%; }
 :root[data-theme="grey"] { --background-veil-start: 54%; --background-veil-end: 64%; }
@@ -171,7 +303,8 @@ body::before {
 }
 
 button,
-input {
+input,
+select {
     font: inherit;
 }
 
@@ -813,42 +946,128 @@ a {
     opacity: 0.68;
 }
 
-.route-preview {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin: 28px 0 0;
-    padding: 5px 2px 7px;
+.route-preview-heading {
+    margin: 30px 0 11px;
+    text-align: center;
+}
+
+.route-preview-heading .section-tag {
+    transform: rotate(-0.5deg);
+}
+
+.route-preview-container,
+.route-list-container {
+    --outline-fill: color-mix(in srgb, var(--surface-muted) var(--ui-panel-opacity), transparent);
+    --outline-backdrop-base: var(--surface-muted);
+    --outline-backdrop-overlap: 0.5px;
+    --outline-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 15%, transparent);
+    border: 8px solid transparent;
+    border-image-source: var(--outline-frame-image);
+    border-image-slice: 100;
+    border-image-width: 11px;
+    border-image-outset: 2px;
+    border-image-repeat: round;
+    border-radius: 9px;
+}
+
+.route-preview-container {
+    max-width: 100%;
+    padding: 14px 12px;
     overflow-x: auto;
-    color: var(--muted);
-    font-size: 0.82rem;
-    font-weight: 650;
-    list-style: none;
     scrollbar-width: thin;
 }
 
-.route-preview li {
-    flex: none;
-    padding: 5px 9px;
-    border: 1px dashed color-mix(in srgb, var(--text) 35%, transparent);
-    border-radius: 7px;
-    background: var(--surface-muted);
+.route-track {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.route-preview li + li {
+.route-preview {
     display: flex;
-    gap: 10px;
+    width: max-content;
+    min-width: 100%;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.route-preview .route-step {
+    display: flex;
+    flex: none;
     align-items: center;
 }
 
-.route-preview li + li::before {
-    width: 23px;
-    height: 23px;
-    margin-right: 0;
-    background: url("./assets/arrow.png") center / contain no-repeat;
+.route-preview .route-step + .route-step::before {
+    width: 46px;
+    height: 38px;
+    background: url("./assets/arrow.png") center / 40px 40px no-repeat;
     content: "";
     flex: none;
     filter: var(--arrow-contrast-filter);
+}
+
+.route-node {
+    --outline-fill: var(--surface);
+    --outline-backdrop-base: var(--surface);
+    --outline-backdrop-overlap: 0.5px;
+    --outline-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 19%, transparent);
+    width: min(218px, 54vw);
+    min-width: 158px;
+    padding: 11px 14px 13px;
+    border: 7px solid transparent;
+    border-image-source: var(--button-frame-image);
+    border-image-slice: 100;
+    border-image-width: 9px;
+    border-image-outset: 1px;
+    border-image-repeat: round;
+    border-radius: 8px;
+    transform: rotate(-0.25deg);
+}
+
+.route-step:nth-child(even) .route-node {
+    transform: rotate(0.35deg);
+}
+
+.route-step.is-start .route-node {
+    --outline-fill: color-mix(in srgb, var(--accent-cyan) 18%, var(--surface));
+    --outline-backdrop-base: color-mix(in srgb, var(--accent-cyan) 18%, var(--surface));
+}
+
+.route-step.is-current .route-node,
+.route-step.is-finish .route-node {
+    --outline-fill: color-mix(in srgb, var(--accent-pink) 16%, var(--surface));
+    --outline-backdrop-base: color-mix(in srgb, var(--accent-pink) 16%, var(--surface));
+}
+
+.route-step-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--red-accent);
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.route-artist,
+.route-song {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.route-artist {
+    color: var(--text);
+    font-size: 0.93rem;
+    font-weight: 900;
+    line-height: 1.22;
+}
+
+.route-song {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 650;
+    line-height: 1.3;
 }
 
 .results-card {
@@ -898,55 +1117,47 @@ a {
     text-transform: none;
 }
 
+.route-list-container {
+    width: min(640px, 100%);
+    margin: 18px auto 34px;
+    padding: 22px;
+}
+
 .route-list {
-    margin: 18px 0 34px;
-    padding: 2px 0;
-    list-style: none;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
 }
 
-.route-step {
-    position: relative;
-    min-height: 56px;
-    padding: 2px 0 27px 43px;
+.route-list .route-step {
+    display: flex;
+    width: min(100%, 440px);
+    flex-direction: column;
+    align-items: center;
 }
 
-.route-step:not(:last-child)::before {
-    position: absolute;
-    top: 19px;
-    bottom: -3px;
-    left: 13px;
-    width: 4px;
-    border-radius: 999px;
-    background: var(--route-line);
+.route-list .route-node {
+    width: 100%;
+    padding: 14px 18px 16px;
+}
+
+.route-list .route-artist {
+    font-size: 1.02rem;
+}
+
+.route-list .route-song {
+    font-size: 0.8rem;
+}
+
+.route-list .route-step + .route-step::before {
+    width: 42px;
+    height: 54px;
+    background: url("./assets/arrow.png") center / 44px 44px no-repeat;
     content: "";
-    transform: rotate(-0.6deg);
-}
-
-.route-step::after {
-    position: absolute;
-    top: 4px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    border: 4px solid var(--ink);
-    border-radius: 43% 57% 51% 49%;
-    background: var(--primary);
-    box-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 22%, transparent);
-    content: "";
-}
-
-.route-artist {
-    display: block;
-    color: var(--text);
-    font-family: Arial, sans-serif;
-    font-weight: 900;
-}
-
-.route-song {
-    display: block;
-    margin-top: 4px;
-    color: var(--muted);
-    font-size: 0.86rem;
+    flex: none;
+    filter: var(--arrow-contrast-filter);
+    transform: rotate(90deg);
 }
 
 .error-panel {
@@ -968,19 +1179,33 @@ a {
 }
 
 .settings-button {
+    --button-background: var(--settings-button-color);
+    --button-hover-background: var(--settings-button-hover);
+    --outline-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 28%, transparent);
     position: fixed;
     z-index: 102;
-    top: 20px;
-    right: 24px;
+    top: 18px;
+    right: 18px;
     min-width: 126px;
-    min-height: 58px;
-    padding: 10px 22px;
+    min-height: 52px;
+    padding: 8px 14px;
+    border-width: 7px;
+    border-image-width: 9px;
+    border-image-outset: 1px;
 }
 
 .settings-button:hover,
 .settings-button[aria-expanded="true"] {
+    --outline-fill: var(--button-hover-background);
+    --outline-backdrop-base: var(--button-hover-background);
+    --outline-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 32%, transparent);
     border-color: transparent;
     color: #ffffff;
+    transform: translateY(-1px) rotate(-0.35deg);
+}
+
+.settings-button:active {
+    --outline-shadow: 1px 1px 0 color-mix(in srgb, var(--ink) 34%, transparent);
 }
 
 .settings-button-icon {
@@ -1036,14 +1261,43 @@ a {
     --outline-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 30%, transparent);
     width: 43px;
     height: 43px;
-    padding: 0 0 3px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
     border: 2px solid var(--ink);
     border-radius: 48% 52% 45% 55%;
     color: var(--text);
     background: var(--surface-muted);
     font-family: Arial, sans-serif;
-    font-size: 1.7rem;
+    line-height: 1;
     cursor: pointer;
+}
+
+.settings-close-icon {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+.settings-close-icon::before,
+.settings-close-icon::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 3px;
+    border-radius: 999px;
+    background: currentColor;
+    content: "";
+}
+
+.settings-close-icon::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.settings-close-icon::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .settings-close-button:hover {
@@ -1071,42 +1325,56 @@ a {
     line-height: 1.5;
 }
 
-.theme-options {
+.theme-select-control {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 9px;
+    gap: 8px;
 }
 
-.theme-option {
-    --outline-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 16%, transparent);
+.settings-control-label {
+    font-size: 0.88rem;
+    font-weight: 750;
+}
+
+.theme-select-wrapper {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 7px;
     align-items: center;
-    min-width: 0;
-    min-height: 70px;
-    padding: 9px 5px;
-    border: 2px solid color-mix(in srgb, var(--ink) 56%, transparent);
-    border-radius: 9px 12px 8px 11px;
+}
+
+.theme-select-wrapper > .theme-swatch {
+    position: absolute;
+    z-index: 1;
+    left: 16px;
+    width: 25px;
+    height: 25px;
+    pointer-events: none;
+}
+
+.theme-select {
+    --outline-fill: var(--surface-muted);
+    --outline-backdrop-base: var(--surface-muted);
+    --outline-backdrop-overlap: 0.5px;
+    --outline-shadow: 2px 2px 0 color-mix(in srgb, var(--ink) 18%, transparent);
+    width: 100%;
+    min-height: 54px;
+    padding: 10px 44px 10px 54px;
+    border: 7px solid transparent;
+    border-image-source: var(--button-frame-image);
+    border-image-slice: 100;
+    border-image-width: 9px;
+    border-image-outset: 1px;
+    border-image-repeat: round;
+    border-radius: 8px;
     color: var(--text);
-    background: var(--surface-muted);
-    font-family: Arial, sans-serif;
-    font-size: 0.75rem;
+    background-color: var(--surface-muted);
+    font: inherit;
+    font-weight: 750;
     cursor: pointer;
 }
 
-.theme-option:hover {
-    border-color: var(--primary);
-    transform: rotate(-0.8deg);
-}
-
-.theme-option[aria-pressed="true"] {
-    --outline-shadow:
-        0 0 0 3px var(--surface),
-        0 0 0 6px var(--primary),
-        3px 3px 0 color-mix(in srgb, var(--ink) 30%, transparent);
-    border-color: var(--ink);
-    transform: rotate(0.8deg);
+.theme-select:hover {
+    --outline-fill: color-mix(in srgb, var(--primary) 12%, var(--surface-muted));
+    --outline-backdrop-base: color-mix(in srgb, var(--primary) 12%, var(--surface-muted));
 }
 
 .theme-swatch {
@@ -1129,6 +1397,12 @@ a {
 
 .settings-range-header {
     margin-bottom: 13px;
+}
+
+.settings-subcontrol {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 2px dashed color-mix(in srgb, var(--text) 18%, transparent);
 }
 
 .settings-range-label {
@@ -1505,7 +1779,6 @@ body ::placeholder {
 /* Every interactive button uses the outline templates; no bitmap button skin. */
 .suggestion,
 #choices button,
-.theme-option,
 .settings-close-button {
     border-style: solid;
     border-color: transparent;
@@ -1562,16 +1835,6 @@ body ::placeholder {
     --outline-backdrop-base: var(--disabled-background);
 }
 
-.theme-option {
-    --outline-fill: var(--surface-muted);
-    --outline-backdrop-base: var(--surface-muted);
-    --outline-backdrop-overlap: 0.5px;
-    border-width: 6px;
-    border-image-width: 8px;
-    border-image-outset: 1px;
-    border-radius: 7px;
-}
-
 .settings-close-button {
     --outline-fill: var(--surface-muted);
     --outline-backdrop-base: var(--surface-muted);
@@ -1599,9 +1862,12 @@ body ::placeholder {
 .settings-button,
 .stat,
 .settings-contact,
+.route-preview-container,
+.route-list-container,
+.route-node,
 .suggestion,
 #choices button,
-.theme-option,
+.theme-select,
 .settings-close-button {
     --outline-backdrop: color-mix(in srgb, var(--outline-backdrop-base) 94%, var(--ink));
     background:
@@ -1751,8 +2017,21 @@ body ::placeholder {
         padding: 21px 18px;
     }
 
-    .theme-options {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .route-preview-container {
+        padding-inline: 9px;
+    }
+
+    .route-node {
+        width: min(200px, 68vw);
+        min-width: 145px;
+    }
+
+    .route-list-container {
+        padding: 16px 12px;
+    }
+
+    .route-list .route-node {
+        width: 100%;
     }
 }
 
@@ -1778,6 +2057,9 @@ body ::placeholder {
     .stat,
     .settings-panel,
     .settings-contact,
+    .route-preview-container,
+    .route-list-container,
+    .route-node,
     .status:not(:empty),
     .error-panel {
         border: 2px solid CanvasText;
@@ -1797,7 +2079,7 @@ body ::placeholder {
     .settings-button,
     .suggestion,
     #choices button,
-    .theme-option,
+    .theme-select,
     .settings-close-button {
         border: 2px solid ButtonText;
         border-image: none;
@@ -1813,6 +2095,20 @@ body ::placeholder {
     .text-button::before,
     .settings-button::before {
         content: none;
+    }
+
+    .route-preview .route-step + .route-step::before,
+    .route-list .route-step + .route-step::before {
+        display: grid;
+        background: none;
+        color: CanvasText;
+        content: "→";
+        filter: none;
+        transform: none;
+    }
+
+    .route-list .route-step + .route-step::before {
+        content: "↓";
     }
 
     .page-heading,

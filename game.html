@@ -7,11 +7,13 @@
     <title>Songaveler Challenge</title>
     <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
     <link rel="apple-touch-icon" href="./assets/icon.png">
-    <script src="./settings.js?v=appearance-12"></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-7">
-    <link rel="stylesheet" href="./theme.css?v=paper-13">
+    <script src="./settings.js?v=appearance-15"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-9">
+    <link rel="stylesheet" href="./theme.css?v=paper-16">
+    <link rel="stylesheet" href="./site.css?v=site-4">
+    <script src="./navigation.js?v=nav-3" defer></script>
 </head>
-<body class="game-page">
+<body class="game-page" data-page="game">
     <main class="page-shell wide-shell">
         <div class="card content-card title-card">
             <div class="panel-content">
@@ -72,8 +74,11 @@
             </div>
             <div id="choices"></div>
 
+            <div class="route-preview-heading">
+                <span class="section-tag">Route so far</span>
+            </div>
             <div class="route-preview-container">
-                <ol id="route-preview" class="route-preview" aria-label="Route so far"></ol>
+                <ol id="route-preview" class="route-track route-preview" aria-label="Route so far"></ol>
             </div>
         </div>
 
@@ -82,7 +87,7 @@
                 <button id="restart-challenge" class="primary-button" type="button">
                     Restart challenge
                 </button>
-                <a class="secondary-button" href="./index.html" data-preserve-theme>
+                <a class="secondary-button" href="./route-picker.html">
                     New challenge
                 </a>
             </div>
@@ -90,6 +95,6 @@
     </main>
 
     <script src="./database.js?v=20260715T200355"></script>
-    <script src="./game.js?v=flow-5"></script>
+    <script src="./game.js?v=flow-7"></script>
 </body>
 </html>

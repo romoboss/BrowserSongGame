@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#aeb1b5">
+    <meta name="description" content="Replay any date from the Songaveler Daily Challenge archive.">
+    <title>Daily Challenge Archive - Songaveler</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-15"></script>
+    <script src="./navigation.js?v=nav-3" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-9">
+    <link rel="stylesheet" href="./theme.css?v=paper-16">
+    <link rel="stylesheet" href="./site.css?v=site-4">
+</head>
+<body class="daily-page archive-page" data-page="archive">
+    <main class="page-shell">
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading archive-page-heading">
+                    <img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75">
+                    <span class="accent-cyan">Daily</span> <span class="accent-pink">Archive</span>
+                </h1>
+            </div>
+        </div>
+
+        <div class="card content-card intro-card page-header">
+            <div class="panel-content">
+                <span class="section-tag">Choose any date</span>
+                <h2 class="section-heading">Revisit a <span class="accent-yellow">daily route</span></h2>
+                <p class="page-intro">
+                    Pick a date to regenerate its shared challenge. Archive attempts are just for fun
+                    and do not count toward your Daily Challenge stats.
+                </p>
+            </div>
+        </div>
+
+        <section class="card content-card daily-card" aria-labelledby="archive-heading">
+            <div class="card-heading">
+                <span class="section-tag">Challenge date</span>
+                <h2 id="archive-heading">Open the archive</h2>
+            </div>
+
+            <form id="archive-form" class="challenge-form" novalidate>
+                <div class="picker-field">
+                    <label for="archive-date-input">Date in the archive</label>
+                    <div class="search-box">
+                        <input id="archive-date-input" type="date" required>
+                    </div>
+                    <small>Daily dates follow UTC so the selected route is the same for everyone.</small>
+                </div>
+                <div class="daily-actions">
+                    <button class="secondary-button" type="submit">Load challenge</button>
+                </div>
+            </form>
+
+            <div id="archive-content" hidden>
+                <div class="daily-header">
+                    <div>
+                        <span class="section-tag">Archived seed</span>
+                        <h2>Make this connection</h2>
+                    </div>
+                    <time id="archive-date-output" class="daily-date">Loading date…</time>
+                </div>
+
+                <div class="daily-pair" role="region" aria-label="Archived artist pair">
+                    <div class="daily-endpoint">
+                        <span class="challenge-label">Start</span>
+                        <strong id="archive-start-artist" class="challenge-name">Loading…</strong>
+                    </div>
+                    <div class="daily-arrow" aria-hidden="true">
+                        <img src="./assets/arrow.png" alt="">
+                    </div>
+                    <div class="daily-endpoint">
+                        <span class="challenge-label">Target</span>
+                        <strong id="archive-end-artist" class="challenge-name">Loading…</strong>
+                    </div>
+                </div>
+
+                <p id="archive-status" class="daily-status"></p>
+                <div class="daily-actions">
+                    <a id="archive-play-link" class="primary-button" href="./daily.html">
+                        Play archived challenge
+                    </a>
+                    <a class="secondary-button" href="./daily.html">Back to today's challenge</a>
+                </div>
+            </div>
+
+            <div id="archive-error" class="error-panel daily-error" role="alert" hidden></div>
+        </section>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./daily-generator.js?v=daily-generator-1"></script>
+    <script src="./archive.js?v=archive-1"></script>
+</body>
+</html>

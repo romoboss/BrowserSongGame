@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#aeb1b5">
+    <title>Choose a Songaveler Challenge</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-15"></script>
+    <script src="./navigation.js?v=nav-3" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-9">
+    <link rel="stylesheet" href="./theme.css?v=paper-16">
+    <link rel="stylesheet" href="./site.css?v=site-4">
+</head>
+
+<body class="setup-page" data-page="route-picker">
+    <main class="page-shell">
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
+            </div>
+        </div>
+
+        <div class="card content-card intro-card">
+            <div class="panel-content">
+                <h2 class="section-heading">Connect <span class="accent-pink">two artists.</span></h2>
+                <p class="page-intro">
+                    Pick where your <strong class="accent-pink">route begins</strong> and where it should end.
+                    In the game, move between artists through <strong class="accent-cyan">songs they share.</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="card content-card setup-card">
+            <form id="challenge-form" class="challenge-form">
+                <div class="card-heading">
+                    <span class="section-tag">Choose the endpoints</span>
+                    <h2>Set your <span class="accent-yellow">route</span></h2>
+                </div>
+
+                <div class="picker-grid">
+                    <div class="picker-field">
+                        <label for="start-input"><span>01</span> Start artist</label>
+                        <div class="autocomplete">
+                            <div class="search-box">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <input id="start-input" type="search" placeholder="Search artists" autocomplete="off"
+                                    role="combobox" aria-autocomplete="list" aria-controls="start-suggestions"
+                                    aria-expanded="false">
+                            </div>
+                            <div id="start-suggestions" class="suggestions" role="listbox" hidden></div>
+                        </div>
+                        <small>Your first artist in the route.</small>
+                    </div>
+
+                    <div class="picker-link" aria-hidden="true">
+                        <img src="./assets/arrow.png" alt="">
+                    </div>
+
+                    <div class="picker-field">
+                        <label for="end-input"><span>02</span> End artist</label>
+                        <div class="autocomplete">
+                            <div class="search-box">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <input id="end-input" type="search" placeholder="Search artists" autocomplete="off"
+                                    role="combobox" aria-autocomplete="list" aria-controls="end-suggestions"
+                                    aria-expanded="false">
+                            </div>
+                            <div id="end-suggestions" class="suggestions" role="listbox" hidden></div>
+                        </div>
+                        <small>The artist you need to reach.</small>
+                    </div>
+                </div>
+
+                <div class="status-container">
+                    <p id="setup-status" class="status" role="status" aria-live="polite"></p>
+                </div>
+
+                <div class="setup-actions">
+                    <button id="start-game" class="primary-button" type="submit" disabled>
+                        Start challenge
+                    </button>
+                    <button id="lucky-button" class="secondary-button" type="button">
+                        I'm Feeling Lucky
+                    </button>
+                    <button id="share-link" class="secondary-button" type="button" disabled>
+                        Share Link
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./setup.js?v=flow-7"></script>
+</body>
+
+</html>

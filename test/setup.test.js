@@ -16,7 +16,7 @@ const elements = installFakeDocument([
 elements["start-suggestions"].hidden = true;
 elements["end-suggestions"].hidden = true;
 globalThis.SONG_DATABASE = createDatabaseFixture();
-globalThis.location = { href: "file:///D:/BrowserDailyGame/index.html" };
+globalThis.location = { href: "file:///D:/BrowserDailyGame/route-picker.html" };
 let copiedLink = "";
 Object.defineProperty(globalThis, "navigator", {
     configurable: true,
@@ -57,6 +57,24 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     endSuggestion.dispatch("click");
     assert.equal(elements["start-game"].disabled, false);
 
+    document.documentElement.dataset.luckyConnections = "1";
+    document.documentElement.dataset.luckyLinkedSongs = "10";
+    elements["lucky-button"].dispatch("click");
+    assert.equal(
+        elements["setup-status"].textContent,
+        "No eligible random challenge with 1 connection and at least 10 linked songs per artist was found."
+    );
+    assert.equal(elements["setup-status"].dataset.error, "true");
+
+    document.documentElement.dataset.luckyConnections = "2";
+    document.documentElement.dataset.luckyLinkedSongs = "26";
+    elements["lucky-button"].dispatch("click");
+    assert.equal(
+        elements["setup-status"].textContent,
+        "No eligible random challenge with 2 connections and at least 26 linked songs per artist was found."
+    );
+
+    document.documentElement.dataset.luckyLinkedSongs = "10";
     elements["lucky-button"].dispatch("click");
     const startId = elements["start-input"].dataset.artistId;
     const endId = elements["end-input"].dataset.artistId;
@@ -67,13 +85,16 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.ok(database.artistSongs[startId].length >= 10);
     assert.ok(database.artistSongs[endId].length >= 10);
     assert.deepEqual(sharedSongs, []);
+    assert.deepEqual(new Set([startId, endId]), new Set(["1", "3"]));
+    assert.match(elements["setup-status"].textContent, /2 connections apart and ready to play\.$/);
+    assert.equal(elements["setup-status"].dataset.error, "false");
 
     document.documentElement.dataset.theme = "purple";
     assert.equal(elements["share-link"].disabled, false);
     await elements["share-link"].dispatch("click");
 
     const sharedUrl = new URL(copiedLink);
-    assert.equal(sharedUrl.protocol, "file:");
+    assert.equal(sharedUrl.origin, "https://songaveler.romoboss.com");
     assert.match(sharedUrl.pathname, /\/game\.html$/);
     assert.equal(sharedUrl.searchParams.get("start"), startId);
     assert.equal(sharedUrl.searchParams.get("end"), endId);
@@ -81,7 +102,7 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.equal(sharedUrl.searchParams.has("limit"), false);
     assert.equal(
         elements["setup-status"].textContent,
-        "Local challenge link copied. It will only work on this computer."
+        "Challenge link copied to your clipboard."
     );
 
     let prevented = false;
@@ -91,7 +112,7 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.equal(prevented, true);
     assert.match(
         globalThis.location.href,
-        /^\.\/game\.html\?start=[13]&end=[13]&theme=purple&limit=10&transparency=48$/
+        /^\.\/game\.html\?start=[13]&end=[13]$/
     );
     assert.notEqual(startId, endId);
 });

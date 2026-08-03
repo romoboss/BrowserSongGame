@@ -5,94 +5,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#aeb1b5">
-    <title>Choose a Songaveler Challenge</title>
+    <title>Songaveler — Connect Artists Through Songs</title>
     <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
     <link rel="apple-touch-icon" href="./assets/icon.png">
-    <script src="./settings.js?v=appearance-12"></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-7">
-    <link rel="stylesheet" href="./theme.css?v=paper-13">
+    <script src="./settings.js?v=appearance-15"></script>
+    <script src="./navigation.js?v=nav-3" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-9">
+    <link rel="stylesheet" href="./theme.css?v=paper-16">
+    <link rel="stylesheet" href="./site.css?v=site-4">
 </head>
 
-<body class="setup-page">
-    <main class="page-shell">
+<body class="home-page" data-page="home">
+    <main class="page-shell home-shell">
         <div class="card content-card title-card">
             <div class="panel-content">
                 <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
             </div>
         </div>
 
-        <div class="card content-card intro-card">
+        <section class="card content-card intro-card home-hero" aria-labelledby="home-heading">
             <div class="panel-content">
-                <h2 class="section-heading">Connect <span class="accent-pink">two artists.</span></h2>
+                <span class="section-tag">A music connection game</span>
+                <h2 id="home-heading" class="section-heading">Find the songs that <span class="accent-pink">connect artists.</span></h2>
                 <p class="page-intro">
-                    Pick where your <strong class="accent-pink">route begins</strong> and where it should end.
-                    In the game, move between artists through <strong class="accent-cyan">songs they share.</strong>
+                    Turn song credits into a route from one artist to another. Follow the collaborators,
+                    features, and shared tracks until you reach your target.
                 </p>
+                <div class="home-actions">
+                    <a class="primary-button" href="./route-picker.html">Pick your route</a>
+                    <a class="secondary-button" href="./daily.html">Play today's challenge</a>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <div class="card content-card setup-card">
-            <form id="challenge-form" class="challenge-form">
-                <div class="card-heading">
-                    <span class="section-tag">Choose the endpoints</span>
-                    <h2>Set your <span class="accent-yellow">route</span></h2>
-                </div>
+        <section class="card content-card home-how" aria-labelledby="how-heading">
+            <div class="card-heading">
+                <span class="section-tag">How it works</span>
+                <h2 id="how-heading">Follow the <span class="accent-yellow">credits</span></h2>
+            </div>
 
-                <div class="picker-grid">
-                    <div class="picker-field">
-                        <label for="start-input"><span>01</span> Start artist</label>
-                        <div class="autocomplete">
-                            <div class="search-box">
-                                <img class="search-icon" src="./assets/magnifier.png" alt="">
-                                <input id="start-input" type="search" placeholder="Search artists" autocomplete="off"
-                                    role="combobox" aria-autocomplete="list" aria-controls="start-suggestions"
-                                    aria-expanded="false">
-                            </div>
-                            <div id="start-suggestions" class="suggestions" role="listbox" hidden></div>
-                        </div>
-                        <small>Your first artist in the route.</small>
+            <ol class="home-steps">
+                <li class="home-step">
+                    <span class="home-step-number" aria-hidden="true">01</span>
+                    <div class="home-step-copy">
+                        <h3>Choose the endpoints</h3>
+                        <p>Pick a start artist and the artist you want to reach, or take on the shared daily route.</p>
                     </div>
-
-                    <div class="picker-link" aria-hidden="true">
-                        <img src="./assets/arrow.png" alt="">
+                </li>
+                <li class="home-step">
+                    <span class="home-step-number" aria-hidden="true">02</span>
+                    <div class="home-step-copy">
+                        <h3>Find a linked song</h3>
+                        <p>Search for a song by your current artist, then choose another artist credited on it.</p>
                     </div>
-
-                    <div class="picker-field">
-                        <label for="end-input"><span>02</span> End artist</label>
-                        <div class="autocomplete">
-                            <div class="search-box">
-                                <img class="search-icon" src="./assets/magnifier.png" alt="">
-                                <input id="end-input" type="search" placeholder="Search artists" autocomplete="off"
-                                    role="combobox" aria-autocomplete="list" aria-controls="end-suggestions"
-                                    aria-expanded="false">
-                            </div>
-                            <div id="end-suggestions" class="suggestions" role="listbox" hidden></div>
-                        </div>
-                        <small>The artist you need to reach.</small>
+                </li>
+                <li class="home-step">
+                    <span class="home-step-number" aria-hidden="true">03</span>
+                    <div class="home-step-copy">
+                        <h3>Reach the target</h3>
+                        <p>Keep following song credits. Songaveler records every move and reveals your full route at the finish.</p>
                     </div>
-                </div>
+                </li>
+            </ol>
+        </section>
 
-                <div class="status-container">
-                    <p id="setup-status" class="status" role="status" aria-live="polite"></p>
+        <section class="card content-card home-daily-card" aria-labelledby="daily-heading">
+            <div class="panel-content">
+                <span class="section-tag">Daily Challenge</span>
+                <h2 id="daily-heading" class="section-heading">One route. <span class="accent-cyan">Same for everyone.</span></h2>
+                <p class="page-intro">
+                    A new challenge is generated from the date using the default game rules, so personal settings
+                    never change today's start and target.
+                </p>
+                <div class="home-actions">
+                    <a class="primary-button" href="./daily.html">Start today's challenge</a>
                 </div>
-
-                <div class="setup-actions">
-                    <button id="start-game" class="primary-button" type="submit" disabled>
-                        Start challenge
-                    </button>
-                    <button id="lucky-button" class="secondary-button" type="button">
-                        I'm Feeling Lucky
-                    </button>
-                    <button id="share-link" class="secondary-button" type="button" disabled>
-                        Share Link
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+        </section>
     </main>
-
-    <script src="./database.js?v=20260715T200355"></script>
-    <script src="./setup.js?v=flow-5"></script>
 </body>
 
 </html>

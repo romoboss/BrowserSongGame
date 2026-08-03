@@ -16,7 +16,7 @@ const elements = installFakeDocument([
 elements["start-suggestions"].hidden = true;
 elements["end-suggestions"].hidden = true;
 globalThis.SONG_DATABASE = createDatabaseFixture();
-globalThis.location = { href: "https://example.com/music/index.html" };
+globalThis.location = { href: "https://example.com/music/route-picker.html" };
 Object.defineProperty(globalThis, "navigator", {
     configurable: true,
     value: {}
@@ -48,7 +48,10 @@ test("share link falls back when the Clipboard API is unavailable", async () => 
     await elements["share-link"].dispatch("click");
 
     const copiedUrl = new URL(fallbackCopiedText);
-    assert.equal(copiedUrl.href, "https://example.com/music/game.html?start=1&end=3");
+    assert.equal(
+        copiedUrl.href,
+        "https://songaveler.romoboss.com/game.html?start=1&end=3"
+    );
     assert.equal(elements["setup-status"].textContent, "Challenge link copied to your clipboard.");
     assert.equal(document.body.children.length, 0);
 });

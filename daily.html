@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#aeb1b5">
+    <title>Daily Challenge - Songaveler</title>
+    <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
+    <link rel="apple-touch-icon" href="./assets/icon.png">
+    <script src="./settings.js?v=appearance-15"></script>
+    <link rel="stylesheet" href="./styles.css?v=appearance-9">
+    <link rel="stylesheet" href="./theme.css?v=paper-16">
+    <link rel="stylesheet" href="./site.css?v=site-4">
+    <script src="./navigation.js?v=nav-3" defer></script>
+</head>
+<body class="daily-page" data-page="daily">
+    <main class="page-shell">
+        <div class="card content-card title-card">
+            <div class="panel-content">
+                <h1 class="page-heading"><img class="page-logo" src="./assets/icon.png" alt="" width="75" height="75"><span class="accent-cyan">Song</span><span class="accent-pink">aveler</span></h1>
+            </div>
+        </div>
+
+        <div class="card content-card intro-card page-header">
+            <div class="panel-content">
+                <span class="section-tag">One route. Every day.</span>
+                <h2 class="section-heading">Today's <span class="accent-yellow">challenge</span></h2>
+                <p class="page-intro">
+                    Everyone gets the same artist pair, generated from the current UTC date using
+                    the default Lucky challenge rules.
+                </p>
+            </div>
+        </div>
+
+        <section class="card content-card daily-card" aria-labelledby="daily-heading">
+            <div class="daily-header">
+                <div>
+                    <span class="section-tag">Daily seed</span>
+                    <h2 id="daily-heading">Make today's connection</h2>
+                </div>
+                <time id="daily-date" class="daily-date">Loading date…</time>
+            </div>
+
+            <div id="daily-content" hidden>
+                <div id="daily-completion" class="daily-completion" role="status" hidden>
+                    <strong>Today's challenge is complete</strong>
+                    <span>
+                        Your first result: <b id="daily-completion-moves">—</b> moves in
+                        <b id="daily-completion-time">—</b>.
+                    </span>
+                </div>
+
+                <div class="daily-pair" role="region" aria-label="Today's artist pair">
+                    <div class="daily-endpoint">
+                        <span class="challenge-label">Start</span>
+                        <strong id="daily-start-artist" class="challenge-name">Loading…</strong>
+                    </div>
+                    <div class="daily-arrow" aria-hidden="true">
+                        <img src="./assets/arrow.png" alt="">
+                    </div>
+                    <div class="daily-endpoint">
+                        <span class="challenge-label">Target</span>
+                        <strong id="daily-end-artist" class="challenge-name">Loading…</strong>
+                    </div>
+                </div>
+
+                <p id="daily-status" class="daily-status"></p>
+                <div class="daily-actions">
+                    <a id="daily-play-link" class="primary-button" href="./route-picker.html">
+                        Play today's challenge
+                    </a>
+                    <a class="secondary-button" href="./route-picker.html">Pick my own route</a>
+                </div>
+            </div>
+
+            <div id="daily-error" class="error-panel daily-error" hidden>
+                <strong>Today's challenge could not be prepared.</strong>
+                <p id="daily-error-message">Please refresh the page or choose your own route.</p>
+                <a href="./route-picker.html">Open the Route Picker</a>
+            </div>
+        </section>
+
+        <section class="card content-card daily-stats-card" aria-labelledby="daily-stats-heading">
+            <div class="card-heading">
+                <span class="section-tag">Saved in this browser</span>
+                <h2 id="daily-stats-heading">Your <span class="accent-cyan">Daily Stats</span></h2>
+            </div>
+            <div class="stats-grid daily-stats-grid" aria-label="Daily Challenge statistics">
+                <div class="stat">
+                    <strong id="daily-stat-completed" class="stat-value">0</strong>
+                    <span class="stat-label">Completed</span>
+                </div>
+                <div class="stat">
+                    <strong id="daily-stat-streak" class="stat-value">0</strong>
+                    <span class="stat-label">Current streak</span>
+                </div>
+                <div class="stat">
+                    <strong id="daily-stat-average-moves" class="stat-value">—</strong>
+                    <span class="stat-label">Average moves</span>
+                </div>
+                <div class="stat">
+                    <strong id="daily-stat-average-time" class="stat-value">—</strong>
+                    <span class="stat-label">Average time</span>
+                </div>
+            </div>
+            <p class="daily-stats-note">
+                Only your first attempt at each Daily Challenge can count. Replays cannot replace
+                that result, and archive runs never affect these stats.
+            </p>
+            <div class="daily-actions">
+                <a class="secondary-button" href="./archive.html">Browse the Daily Archive</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="./database.js?v=20260715T200355"></script>
+    <script src="./daily-generator.js?v=daily-generator-1"></script>
+    <script src="./daily-progress.js?v=daily-progress-1"></script>
+    <script src="./daily.js?v=daily-2"></script>
+</body>
+</html>
