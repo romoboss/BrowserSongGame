@@ -50,7 +50,7 @@ test("share link falls back when the Clipboard API is unavailable", async () => 
     const copiedUrl = new URL(fallbackCopiedText);
     assert.equal(
         copiedUrl.href,
-        "https://songaveler.romoboss.com/game.html?start=1&end=3"
+        "https://songaveler.romoboss.com/game?start=1&end=3"
     );
     assert.equal(elements["setup-status"].textContent, "Challenge link copied to your clipboard.");
     assert.equal(document.body.children.length, 0);

@@ -181,7 +181,7 @@ function finishGame() {
         if (isArchiveChallenge) parameters.set("archive", "1");
         if (isFirstDailyAttempt) parameters.set("first", "1");
     }
-    const resultsUrl = `./results.html#${parameters}`;
+    const resultsUrl = `./results#${parameters}`;
 
     if (typeof globalThis.location.replace === "function") {
         globalThis.location.replace(resultsUrl);

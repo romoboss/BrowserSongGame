@@ -3,11 +3,11 @@
     const mobileBreakpoint = 760;
     const mobileMediaQuery = `(max-width: ${mobileBreakpoint}px)`;
     const navigationItems = [
-        { page: "home", label: "Home", href: "./index.html" },
-        { page: "route-picker", label: "Route Picker", href: "./route-picker.html" },
-        { page: "daily", label: "Daily Challenge", href: "./daily.html" },
-        { page: "archive", label: "Daily Archive", href: "./archive.html" },
-        { page: "privacy", label: "Privacy Policy", href: "./privacy.html" },
+        { page: "home", label: "Home", href: "./" },
+        { page: "route-picker", label: "Route Picker", href: "./route-picker" },
+        { page: "daily", label: "Daily Challenge", href: "./daily" },
+        { page: "archive", label: "Daily Archive", href: "./archive" },
+        { page: "privacy", label: "Privacy Policy", href: "./privacy" },
         {
             page: null,
             label: "Main Website",
@@ -131,7 +131,7 @@
 
         const brand = document.createElement("a");
         brand.className = "site-nav-brand";
-        brand.href = "./index.html";
+        brand.href = "./";
         brand.textContent = "Songaveler";
         header.appendChild(brand);
         sidebar.appendChild(header);
@@ -151,8 +151,8 @@
 
         const version = document.createElement("footer");
         version.className = "site-nav-version";
-        version.setAttribute("aria-label", "Website version 1.0.0");
-        version.textContent = "Website v1.0.0";
+        version.setAttribute("aria-label", "Website version 1.0.1");
+        version.textContent = "Website v1.0.1";
         sidebar.appendChild(version);
 
         const overlay = setAttributes(document.createElement("button"), {

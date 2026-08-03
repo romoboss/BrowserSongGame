@@ -75,7 +75,7 @@
             elements["archive-end-artist"].textContent = database.artists[challenge.endId];
             elements["archive-status"].textContent =
                 "Archive replays use the default Daily Challenge rules and do not affect your stats.";
-            elements["archive-play-link"].href = `./game.html?${parameters}`;
+            elements["archive-play-link"].href = `./game?${parameters}`;
             elements["archive-content"].hidden = false;
             elements["archive-error"].hidden = true;
             elements["archive-error"].textContent = "";

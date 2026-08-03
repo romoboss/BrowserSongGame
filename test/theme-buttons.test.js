@@ -32,3 +32,9 @@ test("the Settings close icon uses centered crossing strokes", () => {
     assert.match(themeCss, /\.settings-close-icon::before[\s\S]*translate\(-50%, -50%\) rotate\(45deg\)/);
     assert.match(themeCss, /\.settings-close-icon::after[\s\S]*translate\(-50%, -50%\) rotate\(-45deg\)/);
 });
+
+test("emoji-capable interface symbols are forced into text presentation", () => {
+    assert.match(siteCss, /content:\s*"\\2630\\FE0E"/);
+    assert.match(siteCss, /content:\s*"\\2197\\FE0E"/);
+    assert.match(themeCss, /font-variant-emoji:\s*text/);
+});

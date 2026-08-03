@@ -74,7 +74,7 @@ test("verified current Daily Challenge results save the first completion", async
     );
     assert.equal(
         elements["replay-link"].href,
-        "./game.html?start=1&end=3&daily=2031-05-10"
+        "./game?start=1&end=3&daily=2031-05-10"
     );
 });
 
@@ -89,7 +89,7 @@ test("archive results retain archive context and never write Daily Stats", async
     );
     assert.equal(
         elements["replay-link"].href,
-        "./game.html?start=1&end=3&daily=2031-05-10&archive=1"
+        "./game?start=1&end=3&daily=2031-05-10&archive=1"
     );
 });
 

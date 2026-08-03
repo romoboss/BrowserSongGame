@@ -109,7 +109,9 @@ body.site-nav-enabled.site-nav-open {
 .site-nav-link-external::after {
     margin-left: auto;
     color: var(--muted);
-    content: "↗";
+    content: "\2197\FE0E";
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    font-variant-emoji: text;
     font-size: 1rem;
 }
 
@@ -169,13 +171,15 @@ body.site-nav-open .site-nav-toggle {
 }
 
 .site-nav-toggle-icon::before {
-    content: "☰";
+    content: "\2630\FE0E";
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    font-variant-emoji: text;
     font-size: 1.15rem;
     line-height: 1;
 }
 
 body.site-nav-open .site-nav-toggle-icon::before {
-    content: "×";
+    content: "\00D7";
     font-size: 1.5rem;
 }
 

@@ -93,7 +93,7 @@ test("game records the final move, disables dead ends, and opens results", () =>
     document.documentElement.dataset.theme = "black";
     targetButton.dispatch("click");
 
-    assert.match(globalThis.location.replacedWith, /^\.\/results\.html#/);
+    assert.match(globalThis.location.replacedWith, /^\.\/results#/);
     assert.equal(globalThis.location.replacedWith.includes("?"), false);
     const parameters = new URLSearchParams(globalThis.location.replacedWith.split("#")[1]);
     assert.equal(parameters.get("start"), "1");

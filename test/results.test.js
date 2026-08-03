@@ -38,7 +38,7 @@ test("results validates and renders route statistics", () => {
     assert.equal(elements["route-list"].children.length, 3);
     assert.equal(
         elements["replay-link"].href,
-        "./game.html?start=1&end=3"
+        "./game?start=1&end=3"
     );
 
     const [startStep, middleStep, finishStep] = elements["route-list"].children;

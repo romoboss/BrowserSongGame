@@ -338,7 +338,7 @@
         launcher.setAttribute("aria-controls", "settings-panel");
         launcher.setAttribute("aria-expanded", "false");
         launcherIcon.className = "settings-button-icon";
-        launcherIcon.textContent = "⚙";
+        launcherIcon.textContent = "\u2699\uFE0E";
         launcherIcon.setAttribute("aria-hidden", "true");
         launcher.appendChild(launcherIcon);
         const launcherLabel = document.createElement("span");

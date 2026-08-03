@@ -801,7 +801,9 @@ a {
     place-items: center;
     color: var(--icon);
     font-size: 1.4rem;
-    content: "→";
+    content: "\2192\FE0E";
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    font-variant-emoji: text;
     flex: none;
 }
 
@@ -911,7 +913,9 @@ a {
     place-items: center;
     color: var(--icon);
     font-size: 1.4rem;
-    content: "↓";
+    content: "\2193\FE0E";
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    font-variant-emoji: text;
 }
 
 .error-panel {

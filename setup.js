@@ -61,7 +61,7 @@ function getChallengeParameters() {
 }
 
 function getShareUrl() {
-    const shareUrl = new URL("./game.html", canonicalSiteUrl);
+    const shareUrl = new URL("./game", canonicalSiteUrl);
     shareUrl.search = getChallengeParameters().toString();
     shareUrl.hash = "";
     return shareUrl.href;
@@ -393,7 +393,7 @@ function initialize() {
             return;
         }
 
-        globalThis.location.href = `./game.html?${getChallengeParameters()}`;
+        globalThis.location.href = `./game?${getChallengeParameters()}`;
     });
 
     luckyButton.addEventListener("click", chooseLuckyArtists);

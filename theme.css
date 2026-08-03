@@ -1216,6 +1216,8 @@ a {
     height: 24px;
     flex: none;
     font-size: 1.32rem;
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    font-variant-emoji: text;
     line-height: 1;
 }
 
@@ -2102,13 +2104,17 @@ body ::placeholder {
         display: grid;
         background: none;
         color: CanvasText;
-        content: "→";
+        content: "\2192\FE0E";
+        font-family: Arial, "Helvetica Neue", sans-serif;
+        font-variant-emoji: text;
         filter: none;
         transform: none;
     }
 
     .route-list .route-step + .route-step::before {
-        content: "↓";
+        content: "\2193\FE0E";
+        font-family: Arial, "Helvetica Neue", sans-serif;
+        font-variant-emoji: text;
     }
 
     .page-heading,

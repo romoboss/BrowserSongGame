@@ -95,6 +95,14 @@ test("settings migrates legacy URL values and stores all controls locally", () =
     assert.ok(closeIcon);
     assert.equal(closeButton.getAttribute("aria-label"), "Close settings");
     assert.equal(closeIcon.getAttribute("aria-hidden"), "true");
+    const launcherIcon = findElement(
+        launcher,
+        element => String(element.className).includes("settings-button-icon")
+    );
+    assert.deepEqual(
+        [...launcherIcon.textContent].map(character => character.codePointAt(0)),
+        [0x2699, 0xfe0e]
+    );
     assert.equal(panel.hidden, true);
 
     launcher.dispatch("click");

@@ -118,13 +118,13 @@
         elements["daily-end-artist"].textContent = database.artists[challenge.endId];
         elements["daily-status"].textContent =
             "Today’s artists are 2 connections apart and each have at least 25 linked songs.";
-        elements["daily-play-link"].href = `./game.html?${parameters}`;
+        elements["daily-play-link"].href = `./game?${parameters}`;
         elements["daily-play-link"].addEventListener("click", () => {
             const attemptParameters = new URLSearchParams(parameters);
             if (progress?.claimFirstAttempt?.(dateKey) === true) {
                 attemptParameters.set("first", "1");
             }
-            elements["daily-play-link"].href = `./game.html?${attemptParameters}`;
+            elements["daily-play-link"].href = `./game?${attemptParameters}`;
         }, { once: true });
         elements["daily-content"].hidden = false;
         elements["daily-error"].hidden = true;

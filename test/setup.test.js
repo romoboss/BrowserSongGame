@@ -95,7 +95,7 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
 
     const sharedUrl = new URL(copiedLink);
     assert.equal(sharedUrl.origin, "https://songaveler.romoboss.com");
-    assert.match(sharedUrl.pathname, /\/game\.html$/);
+    assert.match(sharedUrl.pathname, /\/game$/);
     assert.equal(sharedUrl.searchParams.get("start"), startId);
     assert.equal(sharedUrl.searchParams.get("end"), endId);
     assert.equal(sharedUrl.searchParams.has("theme"), false);
@@ -112,7 +112,7 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.equal(prevented, true);
     assert.match(
         globalThis.location.href,
-        /^\.\/game\.html\?start=[13]&end=[13]$/
+        /^\.\/game\?start=[13]&end=[13]$/
     );
     assert.notEqual(startId, endId);
 });

@@ -158,11 +158,11 @@ test("injects an accessible desktop sidebar and marks the current page", async (
     assert.deepEqual(
         links.map(link => [link.textContent, link.href]),
         [
-            ["Home", "./index.html"],
-            ["Route Picker", "./route-picker.html"],
-            ["Daily Challenge", "./daily.html"],
-            ["Daily Archive", "./archive.html"],
-            ["Privacy Policy", "./privacy.html"],
+            ["Home", "./"],
+            ["Route Picker", "./route-picker"],
+            ["Daily Challenge", "./daily"],
+            ["Daily Archive", "./archive"],
+            ["Privacy Policy", "./privacy"],
             ["Main Website", "https://romoboss.com/"]
         ]
     );
@@ -228,7 +228,7 @@ test("marks the privacy policy as the current menu page", async () => {
         element => element.textContent === "Privacy Policy" && element.tagName === "A"
     );
     assert.ok(privacyLink);
-    assert.equal(privacyLink.href, "./privacy.html");
+    assert.equal(privacyLink.href, "./privacy");
     assert.equal(privacyLink.getAttribute("aria-current"), "page");
     assert.equal(privacyLink.classList.contains("site-nav-link-current"), true);
 });
@@ -242,7 +242,7 @@ test("marks the daily archive as the current menu page", async () => {
         element => element.textContent === "Daily Archive" && element.tagName === "A"
     );
     assert.ok(archiveLink);
-    assert.equal(archiveLink.href, "./archive.html");
+    assert.equal(archiveLink.href, "./archive");
     assert.equal(archiveLink.getAttribute("aria-current"), "page");
     assert.equal(archiveLink.classList.contains("site-nav-link-current"), true);
 });

@@ -217,7 +217,7 @@ function initialize() {
     moveElement.textContent = String(moves);
     artistElement.textContent = String(route.length);
     uniqueElement.textContent = String(uniqueArtists);
-    replayLink.href = `./game.html?${replayParameters}`;
+    replayLink.href = `./game?${replayParameters}`;
     document.title = `${startArtist.name} to ${endArtist.name} - Results`;
 
     renderDailyResult(dailyContext, moves, elapsed);

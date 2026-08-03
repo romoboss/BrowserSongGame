@@ -13,5 +13,5 @@ test("privacy page is dated, navigable, and describes the implemented data handl
     assert.match(privacyHtml, /does not set cookies/);
     assert.match(privacyHtml, /does not use advertising or\s+analytics trackers/);
     assert.match(privacyHtml, /mailto:contact@romoboss\.com/);
-    assert.match(privacyHtml, /\.\/navigation\.js\?v=nav-3/);
+    assert.match(privacyHtml, /\.\/navigation\.js\?v=nav-4/);
 });

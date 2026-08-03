@@ -131,7 +131,7 @@ test("daily challenge uses the UTC date and fixed Lucky defaults", async () => {
     assert.equal(elements["daily-date"].getAttribute("datetime"), "2031-05-10");
     assert.equal(challenge.daily, "2031-05-10");
     assert.equal(elements["daily-play-link"].href,
-        `./game.html?start=${challenge.start}&end=${challenge.end}&daily=2031-05-10`);
+        `./game?start=${challenge.start}&end=${challenge.end}&daily=2031-05-10`);
     await elements["daily-play-link"].dispatch("click");
     assert.equal(
         new URL(elements["daily-play-link"].href, "https://example.test").searchParams.get("first"),
