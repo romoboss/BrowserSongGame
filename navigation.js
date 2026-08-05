@@ -151,8 +151,8 @@
 
         const version = document.createElement("footer");
         version.className = "site-nav-version";
-        version.setAttribute("aria-label", "Website version 1.0.1");
-        version.textContent = "Website v1.0.1";
+        version.setAttribute("aria-label", "Website version 1.0.2");
+        version.textContent = "Website v1.0.2";
         sidebar.appendChild(version);
 
         const overlay = setAttributes(document.createElement("button"), {
