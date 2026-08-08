@@ -37,4 +37,7 @@ Database setup, build, and maintenance instructions are in
 
 The files in `data/` are loaded directly by the website. In particular,
 `data/daily-challenges.js` is an append-only archive maintained by the GitHub
-Actions workflow, so it should not be regenerated manually.
+Actions workflow, so it should not be regenerated manually. On every push, the
+workflow saves today's challenge using the database from before that push. This
+keeps the current challenge stable across database updates; it becomes playable
+from the Daily Archive on the next UTC day.

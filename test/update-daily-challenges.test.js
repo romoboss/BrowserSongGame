@@ -39,14 +39,15 @@ function createTable() {
     };
 }
 
-test("updater appends every missing UTC date through yesterday from the supplied database", () => {
+test("updater saves every missing UTC date through today from the supplied database", () => {
     const table = createTable();
     const originalTable = structuredClone(table);
     const previousDatabase = createDatabase();
     const generatedPairs = {
         "2032-02-28": ["3", "4"],
         "2032-02-29": ["4", "5"],
-        "2032-03-01": ["5", "3"]
+        "2032-03-01": ["5", "3"],
+        "2032-03-02": ["3", "5"]
     };
     const generateCalls = [];
     const generator = {
@@ -71,8 +72,11 @@ test("updater appends every missing UTC date through yesterday from the supplied
     });
 
     assert.equal(result.changed, true);
-    assert.equal(result.throughDate, "2032-03-01");
-    assert.deepEqual(result.addedDates, ["2032-02-28", "2032-02-29", "2032-03-01"]);
+    assert.equal(result.throughDate, "2032-03-02");
+    assert.deepEqual(
+        result.addedDates,
+        ["2032-02-28", "2032-02-29", "2032-03-01", "2032-03-02"]
+    );
     assert.deepEqual(generateCalls.map(call => call.dateKey), result.addedDates);
     assert.ok(generateCalls.every(call => call.database === previousDatabase));
     assert.deepEqual(table, originalTable, "Appending must not mutate or overwrite saved history");
@@ -89,7 +93,7 @@ test("updater appends every missing UTC date through yesterday from the supplied
     });
 });
 
-test("updater is a no-op when the archive is already saved through yesterday", () => {
+test("updater is a no-op when the current challenge is already saved", () => {
     const initial = appendDailyChallenges({
         table: createTable(),
         database: createDatabase(),
@@ -124,7 +128,7 @@ test("updater is a no-op when the archive is already saved through yesterday", (
     assert.equal(result.changed, false);
     assert.deepEqual(result.addedDates, []);
     assert.equal(result.table, initial.table);
-    assert.equal(result.throughDate, "2032-03-01");
+    assert.equal(result.throughDate, "2032-03-02");
 });
 
 test("updater fails atomically when a missing date has no eligible challenge", () => {
@@ -162,9 +166,17 @@ test("updater rejects holes in saved history", () => {
     );
 });
 
-test("updater rejects a table that already extends beyond yesterday", () => {
+test("updater rejects a table that already extends beyond today", () => {
     const table = createTable();
     table.entries["2032-02-28"] = {
+        ...table.entries["2032-02-27"],
+        startId: "2",
+        endId: "1"
+    };
+    table.entries["2032-02-29"] = {
+        ...table.entries["2032-02-27"]
+    };
+    table.entries["2032-03-01"] = {
         ...table.entries["2032-02-27"],
         startId: "2",
         endId: "1"
@@ -177,7 +189,7 @@ test("updater rejects a table that already extends beyond yesterday", () => {
             today: "2032-02-28",
             generator: { generate: () => assert.fail("A future-ending table must not generate") }
         }),
-        /ends at 2032-02-28, after yesterday \(2032-02-27\)/
+        /ends at 2032-03-01, after today \(2032-02-28\)/
     );
 });
 

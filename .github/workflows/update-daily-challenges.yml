@@ -75,7 +75,7 @@ jobs:
           fi
           cp data/daily-challenges.js "$RUNNER_TEMP/trigger-daily-challenges.js"
 
-      - name: Append elapsed Daily Challenges
+      - name: Save Daily Challenges through today
         run: >-
           node tools/update-daily-challenges.js
           --database "$RUNNER_TEMP/previous-database.js"

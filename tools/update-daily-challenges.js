@@ -155,18 +155,17 @@ export function appendDailyChallenges({ table, database, today, generator }) {
         throw new TypeError("A Daily Challenge generator is required.");
     }
 
-    const yesterday = shiftUtcDateKey(today, -1);
-    if (tableDetails.lastDate > yesterday) {
+    if (tableDetails.lastDate > today) {
         throw new Error(
-            `The saved table ends at ${tableDetails.lastDate}, after yesterday (${yesterday}).`
+            `The saved table ends at ${tableDetails.lastDate}, after today (${today}).`
         );
     }
-    if (tableDetails.lastDate === yesterday) {
+    if (tableDetails.lastDate === today) {
         return Object.freeze({
             changed: false,
             addedDates: [],
             table,
-            throughDate: yesterday
+            throughDate: today
         });
     }
 
@@ -174,7 +173,7 @@ export function appendDailyChallenges({ table, database, today, generator }) {
     const addedDates = [];
     for (
         let dateKey = shiftUtcDateKey(tableDetails.lastDate, 1);
-        dateKey <= yesterday;
+        dateKey <= today;
         dateKey = shiftUtcDateKey(dateKey, 1)
     ) {
         if (Object.hasOwn(entries, dateKey)) {
@@ -219,7 +218,7 @@ export function appendDailyChallenges({ table, database, today, generator }) {
         changed: addedDates.length > 0,
         addedDates,
         table: updatedTable,
-        throughDate: yesterday
+        throughDate: today
     });
 }
 

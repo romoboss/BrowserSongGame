@@ -210,6 +210,57 @@ test("archive resolution uses saved entries, fills the unsaved gap, and enforces
     assert.equal(generator.resolveArchive(database, "2031-05-11", today), null);
 });
 
+test("a saved current challenge stays fixed but unlocks in the archive tomorrow", () => {
+    const generator = globalThis.SongavelerDailyGenerator;
+    const database = createDailyDatabase();
+    const currentTable = {
+        ...SAVED_CHALLENGES,
+        entries: {
+            ...SAVED_CHALLENGES.entries,
+            "2031-05-09": {
+                startId: "4",
+                endId: "6",
+                startName: "Saved Yesterday Start",
+                endName: "Saved Yesterday End",
+                requiredConnections: 2,
+                requiredLinkedSongs: 25,
+                sourceDatabaseGeneratedAt: "2031-05-08T18:30:00Z"
+            },
+            "2031-05-10": {
+                startId: "1",
+                endId: "3",
+                startName: "Saved Today Start",
+                endName: "Saved Today End",
+                requiredConnections: 2,
+                requiredLinkedSongs: 25,
+                sourceDatabaseGeneratedAt: "2031-05-09T18:30:00Z"
+            }
+        }
+    };
+
+    globalThis.SongavelerDailyChallenges = currentTable;
+    try {
+        const today = new RealDate("2031-05-10T12:00:00Z");
+        const tomorrow = new RealDate("2031-05-11T12:00:00Z");
+        const current = generator.resolve(database, "2031-05-10");
+
+        assert.equal(current.source, "saved");
+        assert.equal(current.startName, "Saved Today Start");
+        assert.deepEqual(generator.getBounds(today), {
+            firstDate: "2031-05-07",
+            lastSavedDate: "2031-05-10",
+            maxArchiveDate: "2031-05-09"
+        });
+        assert.equal(generator.resolveArchive(database, "2031-05-10", today), null);
+        assert.equal(
+            generator.resolveArchive(database, "2031-05-10", tomorrow).source,
+            "saved"
+        );
+    } finally {
+        globalThis.SongavelerDailyChallenges = SAVED_CHALLENGES;
+    }
+});
+
 test("archive defaults to UTC yesterday, exposes its bounds, and marks replay links", async () => {
     const elements = installFakeDocument(ARCHIVE_ELEMENT_IDS);
     elements["archive-content"].hidden = true;
