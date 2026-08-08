@@ -1,6 +1,6 @@
 {
   "name": "songaveler",
-  "version": "1.0.2",
+  "version": "1.0.31",
   "description": "Static database-backed artist connection game",
   "private": true,
   "type": "module",

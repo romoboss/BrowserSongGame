@@ -2,6 +2,7 @@
     const storageKey = "music-link-sidebar-state";
     const mobileBreakpoint = 760;
     const mobileMediaQuery = `(max-width: ${mobileBreakpoint}px)`;
+    const packageMetadataPath = "./package.json";
     const navigationItems = [
         { page: "home", label: "Home", href: "./" },
         { page: "route-picker", label: "Route Picker", href: "./route-picker" },
@@ -79,6 +80,26 @@
         return listItem;
     }
 
+    async function loadWebsiteVersion(element) {
+        if (typeof globalThis.fetch !== "function") return;
+
+        try {
+            const response = await globalThis.fetch(packageMetadataPath, { cache: "no-store" });
+            if (!response.ok) return;
+
+            const packageMetadata = await response.json();
+            const websiteVersion = typeof packageMetadata?.version === "string"
+                ? packageMetadata.version.trim()
+                : "";
+            if (!websiteVersion) return;
+
+            element.setAttribute("aria-label", `Website version ${websiteVersion}`);
+            element.textContent = `Website v${websiteVersion}`;
+        } catch {
+            // Navigation remains usable if the static configuration is unavailable.
+        }
+    }
+
     function getCurrentPage(body) {
         const declaredPage = body.dataset.page || "";
         if (declaredPage !== "game" && declaredPage !== "results") return declaredPage;
@@ -151,9 +172,10 @@
 
         const version = document.createElement("footer");
         version.className = "site-nav-version";
-        version.setAttribute("aria-label", "Website version 1.0.3");
-        version.textContent = "Website v1.0.3";
+        version.setAttribute("aria-label", "Website version");
+        version.textContent = "Website";
         sidebar.appendChild(version);
+        void loadWebsiteVersion(version);
 
         const overlay = setAttributes(document.createElement("button"), {
             id: "site-nav-overlay",

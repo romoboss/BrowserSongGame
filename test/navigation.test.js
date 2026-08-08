@@ -1,5 +1,20 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+
+const packageMetadata = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8")
+);
+const navigationSource = await readFile(
+    new URL("../js/navigation.js", import.meta.url),
+    "utf8"
+);
+
+test("package metadata is the website version source instead of a hard-coded value", () => {
+    assert.match(packageMetadata.version, /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/);
+    assert.doesNotMatch(navigationSource, /Website v\d/);
+    assert.match(navigationSource, /\.\/package\.json/);
+});
 
 class TestElement {
     constructor(tagName, id = "") {
@@ -81,12 +96,14 @@ function installEnvironment({
     storedState = null,
     loading = false,
     search = "",
-    hash = ""
+    hash = "",
+    websiteVersion = packageMetadata.version
 }) {
     const body = new TestElement("body", "body");
     body.dataset.page = page;
     const documentListeners = new Map();
     const mediaListeners = [];
+    const fetchRequests = [];
     const storedValues = new Map();
     if (storedState !== null) storedValues.set("music-link-sidebar-state", storedState);
 
@@ -102,6 +119,15 @@ function installEnvironment({
             if (type === "change") mediaListeners.push(listener);
         }
     });
+    globalThis.fetch = async (url, options) => {
+        fetchRequests.push({ url, options });
+        return {
+            ok: true,
+            async json() {
+                return { version: websiteVersion };
+            }
+        };
+    };
     globalThis.document = {
         body,
         readyState: loading ? "loading" : "complete",
@@ -118,6 +144,7 @@ function installEnvironment({
 
     return {
         body,
+        fetchRequests,
         storedValues,
         async dispatchDocument(type, event = {}) {
             await Promise.all(
@@ -129,10 +156,11 @@ function installEnvironment({
 
 async function loadNavigation(caseName) {
     await import(new URL(`../js/navigation.js?case=${caseName}`, import.meta.url));
+    await new Promise(resolve => setImmediate(resolve));
 }
 
 test("injects an accessible desktop sidebar and marks the current page", async () => {
-    const { body } = installEnvironment({ page: "route-picker" });
+    const { body, fetchRequests } = installEnvironment({ page: "route-picker" });
     await loadNavigation("desktop");
 
     const toggle = findElement(body, element => element.id === "site-nav-toggle");
@@ -172,8 +200,11 @@ test("injects an accessible desktop sidebar and marks the current page", async (
     assert.equal(links.filter(link => link.getAttribute("aria-current") === "page").length, 1);
     assert.ok(version);
     assert.equal(version.tagName, "FOOTER");
-    assert.equal(version.textContent, "Website v1.0.2");
-    assert.equal(version.getAttribute("aria-label"), "Website version 1.0.2");
+    assert.equal(version.textContent, `Website v${packageMetadata.version}`);
+    assert.equal(version.getAttribute("aria-label"), `Website version ${packageMetadata.version}`);
+    assert.deepEqual(fetchRequests, [
+        { url: "./package.json", options: { cache: "no-store" } }
+    ]);
 });
 
 test("the toggle persists open and closed states", async () => {
