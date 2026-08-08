@@ -47,6 +47,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-08T14:33:18Z"
+        }),
+        "2026-08-08": Object.freeze({
+            startId: "677",
+            endId: "275",
+            startName: "Daddy Yankee",
+            endName: "Selena Gomez",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-08T14:33:18Z"
         })
     })
 });
