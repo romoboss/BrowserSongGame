@@ -2,7 +2,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const projectDirectory = path.dirname(fileURLToPath(import.meta.url));
+const toolsDirectory = path.dirname(fileURLToPath(import.meta.url));
+const projectDirectory = path.resolve(toolsDirectory, "..");
 const outputDirectory = path.resolve(
     process.argv[2] || process.env.DATABASE_DIR || path.join(projectDirectory, "output")
 );
@@ -38,7 +39,7 @@ if (!database.artists || !database.songs || !database.artistSongs || !database.s
     throw new Error("The output directory does not contain a valid song database.");
 }
 
-const destination = path.join(projectDirectory, "database.js");
+const destination = path.join(projectDirectory, "data", "database.js");
 const source = [
     "// Generated from the JSON files in output. Run `npm run build:database` to refresh.",
     `globalThis.SONG_DATABASE = ${JSON.stringify(database)};`,

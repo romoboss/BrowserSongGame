@@ -22,7 +22,24 @@ const DAILY_ELEMENT_IDS = [
 const RealDate = globalThis.Date;
 let importNumber = 0;
 
-await import("../daily-generator.js");
+globalThis.SongavelerDailyChallenges = {
+    formatVersion: 1,
+    firstDate: "2031-05-07",
+    entries: {
+        "2031-05-07": {
+            startId: "1",
+            endId: "3",
+            startName: "Historic Alpha",
+            endName: "Historic Bravo",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2031-05-06T18:30:00Z"
+        }
+    }
+};
+
+await import("../js/daily-generator.js");
+const defaultDailyGenerator = globalThis.SongavelerDailyGenerator;
 
 function createDailyDatabase() {
     const artists = {
@@ -70,7 +87,8 @@ async function renderDaily(
     instant,
     database = createDailyDatabase(),
     settings = {},
-    savedProgress = {}
+    savedProgress = {},
+    dailyGenerator = defaultDailyGenerator
 ) {
     const elements = installFakeDocument(DAILY_ELEMENT_IDS);
     elements["daily-content"].hidden = true;
@@ -78,6 +96,7 @@ async function renderDaily(
     elements["daily-completion"].hidden = true;
     Object.assign(document.documentElement.dataset, settings);
     globalThis.SONG_DATABASE = database;
+    globalThis.SongavelerDailyGenerator = dailyGenerator;
     globalThis.SongavelerDailyProgress = {
         claimFirstAttempt: () => savedProgress.firstAttempt ?? true,
         getCompletion: () => savedProgress.completion || null,
@@ -101,9 +120,10 @@ async function renderDaily(
 
     try {
         importNumber += 1;
-        await import(`../daily.js?daily-test=${importNumber}`);
+        await import(`../js/daily.js?daily-test=${importNumber}`);
     } finally {
         globalThis.Date = RealDate;
+        globalThis.SongavelerDailyGenerator = defaultDailyGenerator;
     }
 
     return elements;
@@ -155,6 +175,45 @@ test("daily challenge uses the UTC date and fixed Lucky defaults", async () => {
         elements["daily-status"].textContent,
         "Today’s artists are 2 connections apart and each have at least 25 linked songs."
     );
+});
+
+test("daily page obtains today's pair through the saved-first resolver", async () => {
+    const resolveCalls = [];
+    const savedChallenge = {
+        dateKey: "2031-05-10",
+        startId: "1",
+        endId: "3",
+        startName: "Persisted Alpha",
+        endName: "Persisted Bravo",
+        requiredConnections: 2,
+        requiredLinkedSongs: 25,
+        sourceDatabaseGeneratedAt: "2031-05-09T12:00:00Z"
+    };
+    const generator = {
+        getUtcDateKey: defaultDailyGenerator.getUtcDateKey,
+        resolve(database, dateKey) {
+            resolveCalls.push({ database, dateKey });
+            return savedChallenge;
+        }
+    };
+    const database = createDailyDatabase();
+    const elements = await renderDaily(
+        "2031-05-10T12:00:00Z",
+        database,
+        {},
+        {},
+        generator
+    );
+    const challenge = getRenderedChallenge(elements);
+
+    assert.equal(resolveCalls.length, 1);
+    assert.equal(resolveCalls[0].database, database);
+    assert.equal(resolveCalls[0].dateKey, "2031-05-10");
+    assert.deepEqual(challenge, { start: "1", end: "3", daily: "2031-05-10" });
+    assert.equal(elements["daily-start-artist"].textContent, "Persisted Alpha");
+    assert.equal(elements["daily-end-artist"].textContent, "Persisted Bravo");
+    assert.equal(elements["daily-content"].hidden, false);
+    assert.equal(elements["daily-error"].hidden, true);
 });
 
 test("daily page shows today's first completion and aggregate stats", async () => {

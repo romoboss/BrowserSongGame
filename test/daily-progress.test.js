@@ -17,7 +17,7 @@ function installStorage(initialValue) {
 
 async function loadProgress() {
     importNumber += 1;
-    await import(`../daily-progress.js?daily-progress-test=${importNumber}`);
+    await import(`../js/daily-progress.js?daily-progress-test=${importNumber}`);
     return globalThis.SongavelerDailyProgress;
 }
 

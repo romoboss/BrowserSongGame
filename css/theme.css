@@ -7,8 +7,8 @@
  */
 
 :root {
-    --outline-frame-image: url("./assets/outline_frame.svg");
-    --button-frame-image: url("./assets/outline_frame.svg");
+    --outline-frame-image: url("../assets/outline_frame.svg");
+    --button-frame-image: url("../assets/outline_frame.svg");
     --ui-panel-opacity: 52%;
     --background-veil-start: 62%;
     --background-veil-end: 72%;
@@ -104,8 +104,8 @@
     [data-theme="dark-cyan"],
     [data-theme="dark-pink"]
 ) {
-    --outline-frame-image: url("./assets/outline_frame_light.svg");
-    --button-frame-image: url("./assets/outline_frame_light.svg");
+    --outline-frame-image: url("../assets/outline_frame_light.svg");
+    --button-frame-image: url("../assets/outline_frame_light.svg");
     --asset-ink-filter: invert(1) brightness(1.16);
     --arrow-contrast-filter: invert(1) brightness(1.16) drop-shadow(0 0 2px rgba(255, 255, 255, 0.92));
     --ink: #f5f2ea;
@@ -282,7 +282,7 @@ body {
             color-mix(in srgb, var(--background) var(--background-veil-start), transparent),
             color-mix(in srgb, var(--background) var(--background-veil-end), transparent)
         ),
-        url("./assets/background.png");
+        url("../assets/background.png");
     background-position: center, center;
     background-size: cover, cover;
     background-attachment: fixed, fixed;
@@ -625,7 +625,7 @@ a {
     height: 28px;
     border: 0;
     border-radius: 0;
-    background: url("./assets/magnifier.png") center / contain no-repeat;
+    background: url("../assets/magnifier.png") center / contain no-repeat;
     content: "";
     filter: var(--asset-ink-filter);
     transform: translateY(-50%);
@@ -1000,7 +1000,7 @@ a {
 .route-preview .route-step + .route-step::before {
     width: 46px;
     height: 38px;
-    background: url("./assets/arrow.png") center / 40px 40px no-repeat;
+    background: url("../assets/arrow.png") center / 40px 40px no-repeat;
     content: "";
     flex: none;
     filter: var(--arrow-contrast-filter);
@@ -1153,7 +1153,7 @@ a {
 .route-list .route-step + .route-step::before {
     width: 42px;
     height: 54px;
-    background: url("./assets/arrow.png") center / 44px 44px no-repeat;
+    background: url("../assets/arrow.png") center / 44px 44px no-repeat;
     content: "";
     flex: none;
     filter: var(--arrow-contrast-filter);

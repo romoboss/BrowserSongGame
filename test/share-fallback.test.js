@@ -29,7 +29,7 @@ document.execCommand = command => {
     return command === "copy" && Boolean(textarea);
 };
 
-await import("../setup.js");
+await import("../js/setup.js");
 
 test("share link falls back when the Clipboard API is unavailable", async () => {
     elements["start-input"].value = "Start";

@@ -25,7 +25,7 @@ globalThis.location = {
     }
 };
 
-await import("../game.js");
+await import("../js/game.js");
 
 test("a one-song target is green, clickable, and completes the challenge", () => {
     elements.search.value = "Bridge";

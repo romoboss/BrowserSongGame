@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const themeCss = await readFile(new URL("../theme.css", import.meta.url), "utf8");
-const siteCss = await readFile(new URL("../site.css", import.meta.url), "utf8");
+const themeCss = await readFile(new URL("../css/theme.css", import.meta.url), "utf8");
+const siteCss = await readFile(new URL("../css/site.css", import.meta.url), "utf8");
 
 function colorValues(variableName) {
     return [...themeCss.matchAll(new RegExp(`${variableName}:\\s*(#[0-9a-f]{6})`, "gi"))]

@@ -94,9 +94,9 @@
 
         let challenge;
         try {
-            challenge = generator.generate(database, dateKey);
+            challenge = generator.resolve(database, dateKey);
         } catch {
-            showError("The bundled artist database could not be loaded.");
+            showError("The Daily Challenge data could not be loaded.");
             return;
         }
 
@@ -114,8 +114,10 @@
             daily: dateKey
         });
 
-        elements["daily-start-artist"].textContent = database.artists[challenge.startId];
-        elements["daily-end-artist"].textContent = database.artists[challenge.endId];
+        elements["daily-start-artist"].textContent =
+            challenge.startName || database.artists[challenge.startId];
+        elements["daily-end-artist"].textContent =
+            challenge.endName || database.artists[challenge.endId];
         elements["daily-status"].textContent =
             "Today’s artists are 2 connections apart and each have at least 25 linked songs.";
         elements["daily-play-link"].href = `./game?${parameters}`;

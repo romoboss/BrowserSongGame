@@ -28,7 +28,7 @@ body.site-nav-enabled.site-nav-open {
             color-mix(in srgb, var(--surface) 92%, transparent),
             color-mix(in srgb, var(--surface-muted) 94%, transparent)
         ),
-        url("./assets/background.png") center / cover;
+        url("../assets/background.png") center / cover;
     box-shadow: 8px 0 24px color-mix(in srgb, var(--ink) 22%, transparent);
     transform: translateX(calc(-100% - 12px));
     transition: transform 180ms ease;

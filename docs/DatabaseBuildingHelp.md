@@ -1,4 +1,8 @@
-# Artist Route database workspace
+# Songaveler database workspace
+
+For the full repository layout and JavaScript commands, see the project
+[`README.md`](../README.md). This document covers the Python/SQLite database
+generator and its exported JSON files.
 
 This workspace builds the collaboration graph used by the game:
 

@@ -43,7 +43,7 @@ async function loadSettings({ name, storedTransparency }) {
         }
     };
 
-    await import(`../settings.js?clean-transparency-${name}`);
+    await import(`../js/settings.js?clean-transparency-${name}`);
 
     return {
         opacity: document.documentElement.style["--ui-panel-opacity"],

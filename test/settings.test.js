@@ -62,7 +62,7 @@ function findElement(root, predicate) {
     return null;
 }
 
-await import("../settings.js");
+await import("../js/settings.js");
 
 test("settings migrates legacy URL values and stores all controls locally", () => {
     assert.equal(document.documentElement.dataset.theme, "dark-blue");

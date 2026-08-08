@@ -128,7 +128,7 @@ function installEnvironment({
 }
 
 async function loadNavigation(caseName) {
-    await import(new URL(`../navigation.js?case=${caseName}`, import.meta.url));
+    await import(new URL(`../js/navigation.js?case=${caseName}`, import.meta.url));
 }
 
 test("injects an accessible desktop sidebar and marks the current page", async () => {
@@ -172,8 +172,8 @@ test("injects an accessible desktop sidebar and marks the current page", async (
     assert.equal(links.filter(link => link.getAttribute("aria-current") === "page").length, 1);
     assert.ok(version);
     assert.equal(version.tagName, "FOOTER");
-    assert.equal(version.textContent, "Website v1.0.0");
-    assert.equal(version.getAttribute("aria-label"), "Website version 1.0.0");
+    assert.equal(version.textContent, "Website v1.0.2");
+    assert.equal(version.getAttribute("aria-label"), "Website version 1.0.2");
 });
 
 test("the toggle persists open and closed states", async () => {

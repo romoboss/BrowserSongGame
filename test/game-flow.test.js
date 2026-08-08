@@ -31,7 +31,7 @@ globalThis.location = {
     }
 };
 
-await import("../game.js");
+await import("../js/game.js");
 
 function chooseSong(searchText, songId) {
     elements.search.value = searchText;

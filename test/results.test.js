@@ -25,7 +25,7 @@ globalThis.location = {
     hash: "#v=1&start=1&end=3&elapsed=65000&route=1%7C100%3A2%7C101%3A3"
 };
 
-await import("../results.js");
+await import("../js/results.js");
 
 test("results validates and renders route statistics", () => {
     assert.equal(elements["results-content"].hidden, false);

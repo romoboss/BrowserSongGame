@@ -8,11 +8,11 @@
     <title>Daily Challenge Archive - Songaveler</title>
     <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
     <link rel="apple-touch-icon" href="./assets/icon.png">
-    <script src="./settings.js?v=appearance-16"></script>
-    <script src="./navigation.js?v=nav-4" defer></script>
-    <link rel="stylesheet" href="./styles.css?v=appearance-10">
-    <link rel="stylesheet" href="./theme.css?v=paper-17">
-    <link rel="stylesheet" href="./site.css?v=site-5">
+    <script src="./js/settings.js?v=appearance-16"></script>
+    <script src="./js/navigation.js?v=nav-4" defer></script>
+    <link rel="stylesheet" href="./css/styles.css?v=appearance-10">
+    <link rel="stylesheet" href="./css/theme.css?v=paper-17">
+    <link rel="stylesheet" href="./css/site.css?v=site-5">
 </head>
 <body class="daily-page archive-page" data-page="archive">
     <main class="page-shell">
@@ -27,10 +27,10 @@
 
         <div class="card content-card intro-card page-header">
             <div class="panel-content">
-                <span class="section-tag">Choose any date</span>
+                <span class="section-tag">Choose an available date</span>
                 <h2 class="section-heading">Revisit a <span class="accent-yellow">daily route</span></h2>
                 <p class="page-intro">
-                    Pick a date to regenerate its shared challenge. Archive attempts are just for fun
+                    Pick a past date to load its saved shared challenge. Archive attempts are just for fun
                     and do not count toward your Daily Challenge stats.
                 </p>
             </div>
@@ -91,8 +91,9 @@
         </section>
     </main>
 
-    <script src="./database.js?v=20260715T200355"></script>
-    <script src="./daily-generator.js?v=daily-generator-1"></script>
-    <script src="./archive.js?v=archive-2"></script>
+    <script src="./data/database.js?v=20260715T200355"></script>
+    <script src="./data/daily-challenges.js?v=daily-challenges-1"></script>
+    <script src="./js/daily-generator.js?v=daily-generator-2"></script>
+    <script src="./js/archive.js?v=archive-3"></script>
 </body>
 </html>

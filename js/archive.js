@@ -28,11 +28,15 @@
 
         const generator = globalThis.SongavelerDailyGenerator;
         const database = globalThis.SONG_DATABASE;
+        const today = generator?.getUtcDateKey?.() || new Date().toISOString().slice(0, 10);
+        let bounds = null;
 
         function showError(message) {
             elements["archive-content"].hidden = true;
             elements["archive-error"].hidden = false;
             elements["archive-error"].textContent = message;
+            elements["archive-play-link"].removeAttribute("href");
+            elements["archive-play-link"].href = "";
         }
 
         function showChallenge(dateKey) {
@@ -46,11 +50,25 @@
                 return;
             }
 
+            if (!bounds || dateKey < bounds.firstDate) {
+                showError(
+                    bounds
+                        ? `Challenges are available from ${bounds.firstDate}.`
+                        : "The Daily Challenge archive is unavailable."
+                );
+                return;
+            }
+
+            if (dateKey > bounds.maxArchiveDate) {
+                showError(`Choose a date no later than ${bounds.maxArchiveDate}.`);
+                return;
+            }
+
             let challenge;
             try {
-                challenge = generator.generate(database, dateKey);
+                challenge = generator.resolveArchive(database, dateKey, today);
             } catch {
-                showError("The bundled artist database could not be loaded.");
+                showError("The Daily Challenge archive could not be loaded.");
                 return;
             }
 
@@ -59,6 +77,18 @@
                     "No archived challenge with 2 connections and at least 25 linked songs "
                     + "per artist could be generated."
                 );
+                return;
+            }
+
+            const startName = challenge.startName || database?.artists?.[challenge.startId];
+            const endName = challenge.endName || database?.artists?.[challenge.endId];
+            if (
+                !startName
+                || !endName
+                || !database?.artists?.[challenge.startId]
+                || !database?.artists?.[challenge.endId]
+            ) {
+                showError("This archived challenge is no longer playable in the bundled database.");
                 return;
             }
 
@@ -71,10 +101,10 @@
 
             elements["archive-date-output"].textContent = dateKey;
             elements["archive-date-output"].setAttribute("datetime", dateKey);
-            elements["archive-start-artist"].textContent = database.artists[challenge.startId];
-            elements["archive-end-artist"].textContent = database.artists[challenge.endId];
+            elements["archive-start-artist"].textContent = startName;
+            elements["archive-end-artist"].textContent = endName;
             elements["archive-status"].textContent =
-                "Archive replays use the default Daily Challenge rules and do not affect your stats.";
+                "Saved artist pairs stay fixed across database updates. Archive replays do not affect your stats.";
             elements["archive-play-link"].href = `./game?${parameters}`;
             elements["archive-content"].hidden = false;
             elements["archive-error"].hidden = true;
@@ -86,9 +116,24 @@
             showChallenge(elements["archive-date-input"].value);
         });
 
-        const today = generator?.getUtcDateKey() || new Date().toISOString().slice(0, 10);
-        elements["archive-date-input"].value = today;
-        showChallenge(today);
+        try {
+            bounds = generator?.getBounds?.(today) || null;
+        } catch {
+            showError("The Daily Challenge archive could not be loaded.");
+            return;
+        }
+
+        if (!bounds || bounds.maxArchiveDate < bounds.firstDate) {
+            showError("No past Daily Challenges are available yet.");
+            return;
+        }
+
+        elements["archive-date-input"].setAttribute("min", bounds.firstDate);
+        elements["archive-date-input"].setAttribute("max", bounds.maxArchiveDate);
+        elements["archive-date-input"].min = bounds.firstDate;
+        elements["archive-date-input"].max = bounds.maxArchiveDate;
+        elements["archive-date-input"].value = bounds.maxArchiveDate;
+        showChallenge(bounds.maxArchiveDate);
     }
 
     if (document.readyState === "loading") {

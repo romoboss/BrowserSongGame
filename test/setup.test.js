@@ -27,7 +27,7 @@ Object.defineProperty(globalThis, "navigator", {
     }
 });
 
-await import("../setup.js");
+await import("../js/setup.js");
 
 test("setup selects a reachable pair, shares it, and starts the challenge", async () => {
     assert.equal(elements["end-input"].disabled, true);

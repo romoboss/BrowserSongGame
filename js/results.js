@@ -116,16 +116,20 @@ function getDailyContext(parameters, startId, endId) {
     const dateKey = parameters.get("daily");
     if (!dailyGenerator?.isValidDateKey?.(dateKey)) return null;
 
+    const today = dailyGenerator.getUtcDateKey();
+
     let challenge;
     try {
-        challenge = dailyGenerator.generate(database, dateKey);
+        challenge = dateKey === today
+            ? dailyGenerator.resolve(database, dateKey)
+            : dailyGenerator.resolveArchive(database, dateKey, today);
     } catch {
         return null;
     }
 
     if (!challenge || challenge.startId !== startId || challenge.endId !== endId) return null;
 
-    const isToday = dailyGenerator.getUtcDateKey() === dateKey;
+    const isToday = today === dateKey;
     return {
         dateKey,
         isArchive: parameters.get("archive") === "1" || !isToday,

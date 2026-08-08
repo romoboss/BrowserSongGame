@@ -1,0 +1,164 @@
+name: Update Daily Challenge archive
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-daily-challenges-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      archive_changed: ${{ steps.commit.outputs.changed }}
+
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Extract the previously deployed database
+        env:
+          PREVIOUS_SHA: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          zero_sha=0000000000000000000000000000000000000000
+          if [[ ! "$PREVIOUS_SHA" =~ ^[0-9a-f]{40}$ || "$PREVIOUS_SHA" == "$zero_sha" ]]; then
+            echo "::error::This push has no usable previous commit, so the archive cannot be updated safely."
+            exit 1
+          fi
+          if ! git cat-file -e "${PREVIOUS_SHA}^{commit}"; then
+            echo "::error::Previous commit $PREVIOUS_SHA is unavailable in the checkout."
+            exit 1
+          fi
+          previous_database_path=data/database.js
+          if ! git cat-file -e "${PREVIOUS_SHA}:${previous_database_path}"; then
+            previous_database_path=database.js
+          fi
+          if ! git cat-file -e "${PREVIOUS_SHA}:${previous_database_path}"; then
+            echo "::error::Previous commit $PREVIOUS_SHA does not contain a browser database."
+            exit 1
+          fi
+          git show "${PREVIOUS_SHA}:${previous_database_path}" > "$RUNNER_TEMP/previous-database.js"
+
+          previous_challenges_path=data/daily-challenges.js
+          if ! git cat-file -e "${PREVIOUS_SHA}:${previous_challenges_path}"; then
+            previous_challenges_path=daily-challenges.js
+          fi
+          if git cat-file -e "${PREVIOUS_SHA}:${previous_challenges_path}"; then
+            git show "${PREVIOUS_SHA}:${previous_challenges_path}" > "$RUNNER_TEMP/previous-daily-challenges.js"
+            if ! cmp --silent "$RUNNER_TEMP/previous-daily-challenges.js" data/daily-challenges.js; then
+              echo "::error::data/daily-challenges.js is append-only and must be updated by this workflow."
+              exit 1
+            fi
+          fi
+          cp data/daily-challenges.js "$RUNNER_TEMP/trigger-daily-challenges.js"
+
+      - name: Append elapsed Daily Challenges
+        run: >-
+          node tools/update-daily-challenges.js
+          --database "$RUNNER_TEMP/previous-database.js"
+          --challenges data/daily-challenges.js
+
+      - name: Run tests
+        run: npm test
+
+      - name: Commit the updated archive
+        id: commit
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- data/daily-challenges.js; then
+            echo "Daily Challenge archive is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data/daily-challenges.js
+          git commit -m "chore: update Daily Challenge archive [skip ci]"
+
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin "$TARGET_BRANCH"
+            remote_sha=$(git rev-parse "origin/$TARGET_BRANCH")
+
+            if ! git cat-file -e "origin/$TARGET_BRANCH:data/daily-challenges.js"; then
+              echo "::error::The latest branch no longer contains data/daily-challenges.js."
+              exit 1
+            fi
+            git show "origin/$TARGET_BRANCH:data/daily-challenges.js" > "$RUNNER_TEMP/remote-daily-challenges.js"
+            if ! cmp --silent "$RUNNER_TEMP/trigger-daily-challenges.js" "$RUNNER_TEMP/remote-daily-challenges.js"; then
+              echo "::notice::A newer workflow has already updated the Daily Challenge archive."
+              exit 0
+            fi
+
+            if [[ "$remote_sha" != "$(git rev-parse HEAD^)" ]]; then
+              git rebase "origin/$TARGET_BRANCH"
+            fi
+
+            if git push origin "HEAD:$TARGET_BRANCH"; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::The branch advanced during push attempt $attempt; retrying."
+          done
+
+          echo "::error::Could not push the Daily Challenge archive update after 3 attempts. Check workflow and branch permissions."
+          exit 1
+
+      # GITHUB_TOKEN pushes do not start a second Pages build, so deploy the
+      # bot commit's exact tracked contents from this same workflow run.
+      - name: Prepare the updated site
+        if: steps.commit.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/pages-site"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
+
+      - name: Upload the updated Pages site
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/pages-site
+
+  deploy:
+    if: needs.update.outputs.archive_changed == 'true'
+    needs: update
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy the updated archive to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
