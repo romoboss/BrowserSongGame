@@ -29,6 +29,24 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-05T14:39:17Z"
+        }),
+        "2026-08-06": Object.freeze({
+            startId: "437",
+            endId: "17",
+            startName: "Lil Yachty",
+            endName: "The Weeknd",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-08T14:33:18Z"
+        }),
+        "2026-08-07": Object.freeze({
+            startId: "212",
+            endId: "284",
+            startName: "Beyoncé",
+            endName: "Bad Bunny",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-08T14:33:18Z"
         })
     })
 });
