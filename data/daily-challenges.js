@@ -65,6 +65,42 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-08T14:33:18Z"
+        }),
+        "2026-08-10": Object.freeze({
+            startId: "298",
+            endId: "318",
+            startName: "Thundercat",
+            endName: "Usher",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-09T00:17:14Z"
+        }),
+        "2026-08-11": Object.freeze({
+            startId: "340",
+            endId: "243",
+            startName: "Miguel",
+            endName: "Imogen Heap",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-09T00:17:14Z"
+        }),
+        "2026-08-12": Object.freeze({
+            startId: "150",
+            endId: "82",
+            startName: "Flo Rida",
+            endName: "2 Chainz",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-09T00:17:14Z"
+        }),
+        "2026-08-13": Object.freeze({
+            startId: "838",
+            endId: "53",
+            startName: "Tove Lo",
+            endName: "Pharrell",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-09T00:17:14Z"
         })
     })
 });
