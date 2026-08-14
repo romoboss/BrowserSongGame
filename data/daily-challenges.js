@@ -101,6 +101,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-09T00:17:14Z"
+        }),
+        "2026-08-14": Object.freeze({
+            startId: "1889",
+            endId: "281",
+            startName: "Danny Brown",
+            endName: "Wiz Khalifa",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-13T22:52:59Z"
         })
     })
 });
