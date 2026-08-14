@@ -30,7 +30,13 @@ npm run build:database
 
 # Run the database generator tests
 python -m unittest discover -s tests -v
+
+# Print the shortest in-game route between two artists
+npm run test:route -- "Radiohead" "Daft Punk"
 ```
+
+The route test accepts artist names without regard to case or accents. If the
+database contains duplicate names, pass an explicit value such as `id:123`.
 
 Database setup, build, and maintenance instructions are in
 [`docs/DatabaseBuildingHelp.md`](docs/DatabaseBuildingHelp.md).
