@@ -110,6 +110,96 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-13T22:52:59Z"
+        }),
+        "2026-08-15": Object.freeze({
+            startId: "3052",
+            endId: "405",
+            startName: "Madlib",
+            endName: "XXXTENTACION",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-16": Object.freeze({
+            startId: "467",
+            endId: "164",
+            startName: "Gunna",
+            endName: "Charli xcx",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-17": Object.freeze({
+            startId: "1411",
+            endId: "62",
+            startName: "Joey Bada$$",
+            endName: "Travis Scott",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-18": Object.freeze({
+            startId: "1438",
+            endId: "157",
+            startName: "Frank Sinatra",
+            endName: "PinkPantheress",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-19": Object.freeze({
+            startId: "210",
+            endId: "260",
+            startName: "Gucci Mane",
+            endName: "Isaiah Rashad",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-20": Object.freeze({
+            startId: "23",
+            endId: "944",
+            startName: "Drake",
+            endName: "Tory Lanez",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-21": Object.freeze({
+            startId: "838",
+            endId: "181",
+            startName: "Tove Lo",
+            endName: "Ludacris",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-22": Object.freeze({
+            startId: "243",
+            endId: "211",
+            startName: "Imogen Heap",
+            endName: "Kodak Black",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-23": Object.freeze({
+            startId: "19",
+            endId: "67",
+            startName: "Playboi Carti",
+            endName: "Juicy J",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-24": Object.freeze({
+            startId: "412",
+            endId: "83",
+            startName: "Bryson Tiller",
+            endName: "JAY‐Z",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
         })
     })
 });
