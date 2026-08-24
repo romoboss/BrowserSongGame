@@ -16,6 +16,7 @@ preservedLink.setAttribute("href", "./index.html");
 body.appendChild(preservedLink);
 
 let replacedUrl = "";
+const animationFrameCallbacks = [];
 
 globalThis.localStorage = {
     getItem: key => storedValues.get(key) ?? null,
@@ -52,6 +53,10 @@ globalThis.history = {
         replacedUrl = url;
     }
 };
+globalThis.requestAnimationFrame = callback => {
+    animationFrameCallbacks.push(callback);
+    return animationFrameCallbacks.length;
+};
 
 function findElement(root, predicate) {
     if (predicate(root)) return root;
@@ -80,6 +85,20 @@ test("settings migrates legacy URL values and stores all controls locally", () =
     assert.equal(preservedLink.getAttribute("href"), "./index.html");
 
     const launcher = findElement(body, element => element.id === "settings-button");
+    assert.ok(launcher);
+    assert.equal(launcher.getAttribute("aria-expanded"), "false");
+    assert.equal(findElement(body, element => element.id === "settings-panel"), null);
+
+    const launcherIcon = findElement(
+        launcher,
+        element => String(element.className).includes("settings-button-icon")
+    );
+    assert.deepEqual(
+        [...launcherIcon.textContent].map(character => character.codePointAt(0)),
+        [0x2699, 0xfe0e]
+    );
+
+    launcher.dispatch("click");
     const panel = findElement(body, element => element.id === "settings-panel");
     const closeButton = findElement(
         panel,
@@ -89,24 +108,13 @@ test("settings migrates legacy URL values and stores all controls locally", () =
         panel,
         element => String(element.className).includes("settings-close-icon")
     );
-    assert.ok(launcher);
     assert.ok(panel);
     assert.ok(closeButton);
     assert.ok(closeIcon);
     assert.equal(closeButton.getAttribute("aria-label"), "Close settings");
     assert.equal(closeIcon.getAttribute("aria-hidden"), "true");
-    const launcherIcon = findElement(
-        launcher,
-        element => String(element.className).includes("settings-button-icon")
-    );
-    assert.deepEqual(
-        [...launcherIcon.textContent].map(character => character.codePointAt(0)),
-        [0x2699, 0xfe0e]
-    );
-    assert.equal(panel.hidden, true);
-
-    launcher.dispatch("click");
     assert.equal(panel.hidden, false);
+    assert.equal(launcher.getAttribute("aria-expanded"), "true");
 
     const themeSelect = findElement(panel, element => element.id === "theme-select");
     assert.ok(themeSelect);
@@ -148,10 +156,20 @@ test("settings migrates legacy URL values and stores all controls locally", () =
     assert.equal(transparencySlider.min, "0");
     assert.equal(transparencySlider.max, "80");
     assert.equal(transparencySlider.value, "62");
+    transparencySlider.value = "65";
+    transparencySlider.dispatch("input");
     transparencySlider.value = "70";
     transparencySlider.dispatch("input");
+    assert.equal(animationFrameCallbacks.length, 1);
+    assert.equal(document.documentElement.dataset.uiTransparency, "62");
+    assert.equal(document.documentElement.style["--ui-panel-opacity"], "38%");
+    assert.equal(storedValues.get("music-link-ui-transparency"), "62");
+
+    animationFrameCallbacks.shift()();
     assert.equal(document.documentElement.dataset.uiTransparency, "70");
     assert.equal(document.documentElement.style["--ui-panel-opacity"], "30%");
+    assert.equal(storedValues.get("music-link-ui-transparency"), "62");
+    transparencySlider.dispatch("change");
     assert.equal(storedValues.get("music-link-ui-transparency"), "70");
 
     const luckySlider = findElement(panel, element => element.id === "lucky-connections");

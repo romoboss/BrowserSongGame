@@ -10,6 +10,7 @@ const elements = installFakeDocument([
     "end-suggestions",
     "start-game",
     "lucky-button",
+    "swap-artists",
     "share-link",
     "setup-status"
 ]);
@@ -31,6 +32,7 @@ await import("../js/setup.js");
 
 test("setup selects a reachable pair, shares it, and starts the challenge", async () => {
     assert.equal(elements["end-input"].disabled, true);
+    assert.equal(elements["swap-artists"].disabled, true);
 
     elements["start-input"].value = "Start";
     elements["start-input"].dispatch("input");
@@ -38,8 +40,9 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
         element => element.dataset.artistId === "1"
     );
     assert.ok(startSuggestion);
-    startSuggestion.dispatch("click");
+    elements["start-suggestions"].dispatch("click", { target: startSuggestion });
     assert.equal(elements["end-input"].disabled, false);
+    assert.equal(elements["swap-artists"].disabled, true);
 
     elements["end-input"].value = "Dead";
     elements["end-input"].dispatch("input");
@@ -54,8 +57,27 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
         element => element.dataset.artistId === "3"
     );
     assert.ok(endSuggestion);
-    endSuggestion.dispatch("click");
+    elements["end-suggestions"].dispatch("click", { target: endSuggestion });
     assert.equal(elements["start-game"].disabled, false);
+    assert.equal(elements["swap-artists"].disabled, false);
+
+    await elements["swap-artists"].dispatch("click");
+    assert.equal(elements["start-input"].dataset.artistId, "3");
+    assert.equal(elements["start-input"].value, "Target Artist");
+    assert.equal(elements["end-input"].dataset.artistId, "1");
+    assert.equal(elements["end-input"].value, "Start Artist");
+    assert.equal(elements["setup-status"].textContent, "Target Artist to Start Artist. Ready to play.");
+
+    let swapSubmitPrevented = false;
+    elements["challenge-form"].dispatch("submit", {
+        preventDefault: () => { swapSubmitPrevented = true; }
+    });
+    assert.equal(swapSubmitPrevented, true);
+    assert.equal(globalThis.location.href, "./game?start=3&end=1");
+
+    await elements["swap-artists"].dispatch("click");
+    assert.equal(elements["start-input"].dataset.artistId, "1");
+    assert.equal(elements["end-input"].dataset.artistId, "3");
 
     document.documentElement.dataset.luckyConnections = "1";
     document.documentElement.dataset.luckyLinkedSongs = "10";
@@ -78,6 +100,8 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     elements["lucky-button"].dispatch("click");
     const startId = elements["start-input"].dataset.artistId;
     const endId = elements["end-input"].dataset.artistId;
+    const startName = elements["start-input"].value;
+    const endName = elements["end-input"].value;
     const database = globalThis.SONG_DATABASE;
     const sharedSongs = database.artistSongs[startId]
         .filter(songId => database.artistSongs[endId].includes(songId));
@@ -88,6 +112,20 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.deepEqual(new Set([startId, endId]), new Set(["1", "3"]));
     assert.match(elements["setup-status"].textContent, /2 connections apart and ready to play\.$/);
     assert.equal(elements["setup-status"].dataset.error, "false");
+
+    await elements["start-input"].dispatch("focus");
+    await elements["end-input"].dispatch("focus");
+    assert.equal(elements["start-input"].value, startName);
+    assert.equal(elements["start-input"].dataset.artistId, startId);
+    assert.equal(elements["end-input"].value, endName);
+    assert.equal(elements["end-input"].dataset.artistId, endId);
+    assert.equal(elements["start-suggestions"].hidden, true);
+    assert.equal(elements["end-suggestions"].hidden, true);
+    assert.equal(elements["start-input"].getAttribute("aria-expanded"), "false");
+    assert.equal(elements["end-input"].getAttribute("aria-expanded"), "false");
+    assert.equal(elements["start-game"].disabled, false);
+    assert.equal(elements["swap-artists"].disabled, false);
+    assert.equal(elements["share-link"].disabled, false);
 
     document.documentElement.dataset.theme = "purple";
     assert.equal(elements["share-link"].disabled, false);

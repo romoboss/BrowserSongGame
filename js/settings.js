@@ -53,6 +53,7 @@
     ];
     const themes = themeGroups.flatMap(group => group.themes);
     const validThemes = new Set(themes.map(theme => theme.id));
+    const bootstrapState = globalThis.SongavelerSettingsBootstrap;
 
     function normalizeTheme(theme) {
         if (theme === "midnight" || theme === "deep-space") return "oled-black";
@@ -246,19 +247,29 @@
         }
     }
 
-    const locationTheme = readLocationTheme();
-    const locationResultLimit = readLocationResultLimit();
-    const locationUiTransparency = readLocationUiTransparency();
-    let selectedTheme = locationTheme || readStoredTheme();
-    let selectedResultLimit = locationResultLimit ?? readStoredResultLimit();
-    let selectedUiTransparency = locationUiTransparency ?? readStoredUiTransparency();
-    let selectedLuckyConnections = readStoredLuckyConnections();
-    let selectedLuckyLinkedSongs = readStoredLuckyLinkedSongs();
+    const locationTheme = bootstrapState ? null : readLocationTheme();
+    const locationResultLimit = bootstrapState ? null : readLocationResultLimit();
+    const locationUiTransparency = bootstrapState ? null : readLocationUiTransparency();
+    let selectedTheme = normalizeTheme(bootstrapState?.theme)
+        || locationTheme
+        || readStoredTheme();
+    let selectedResultLimit = parseResultLimit(bootstrapState?.resultLimit)
+        ?? locationResultLimit
+        ?? readStoredResultLimit();
+    let selectedUiTransparency = parseUiTransparency(bootstrapState?.uiTransparency)
+        ?? locationUiTransparency
+        ?? readStoredUiTransparency();
+    let selectedLuckyConnections = parseLuckyConnections(bootstrapState?.luckyConnections)
+        ?? readStoredLuckyConnections();
+    let selectedLuckyLinkedSongs = parseLuckyLinkedSongs(bootstrapState?.luckyLinkedSongs)
+        ?? readStoredLuckyLinkedSongs();
 
-    if (locationTheme) storeTheme(locationTheme);
-    if (locationResultLimit !== null) storeResultLimit(locationResultLimit);
-    if (locationUiTransparency !== null) storeUiTransparency(locationUiTransparency);
-    removeLegacySettingsFromUrl();
+    if (!bootstrapState) {
+        if (locationTheme) storeTheme(locationTheme);
+        if (locationResultLimit !== null) storeResultLimit(locationResultLimit);
+        if (locationUiTransparency !== null) storeUiTransparency(locationUiTransparency);
+        removeLegacySettingsFromUrl();
+    }
 
     document.documentElement.dataset.theme = selectedTheme;
     document.documentElement.dataset.resultLimit = String(selectedResultLimit);
@@ -272,64 +283,6 @@
         const launcherContainer = document.createElement("div");
         const launcher = document.createElement("button");
         const launcherIcon = document.createElement("span");
-        const scrim = document.createElement("div");
-        const panel = document.createElement("div");
-        const header = document.createElement("div");
-        const title = document.createElement("h2");
-        const closeButton = document.createElement("button");
-        const closeIcon = document.createElement("span");
-        const appearanceSection = document.createElement("div");
-        const appearanceTitle = document.createElement("h3");
-        const appearanceDescription = document.createElement("p");
-        const themeControl = document.createElement("div");
-        const themeSelectLabel = document.createElement("label");
-        const themeSelectWrapper = document.createElement("div");
-        const themeSwatch = document.createElement("span");
-        const themeSelect = document.createElement("select");
-        const transparencySection = document.createElement("div");
-        const transparencyTitle = document.createElement("h3");
-        const transparencyDescription = document.createElement("p");
-        const transparencyHeader = document.createElement("div");
-        const transparencyLabel = document.createElement("label");
-        const transparencyValue = document.createElement("output");
-        const transparencySlider = document.createElement("input");
-        const transparencyBounds = document.createElement("div");
-        const transparencyMinimum = document.createElement("span");
-        const transparencyMaximum = document.createElement("span");
-        const resultSection = document.createElement("div");
-        const resultTitle = document.createElement("h3");
-        const resultDescription = document.createElement("p");
-        const resultHeader = document.createElement("div");
-        const resultLabel = document.createElement("label");
-        const resultValue = document.createElement("output");
-        const resultSlider = document.createElement("input");
-        const resultBounds = document.createElement("div");
-        const resultMinimum = document.createElement("span");
-        const resultMaximum = document.createElement("span");
-        const luckySection = document.createElement("div");
-        const luckyTitle = document.createElement("h3");
-        const luckyDescription = document.createElement("p");
-        const luckyHeader = document.createElement("div");
-        const luckyLabel = document.createElement("label");
-        const luckyValue = document.createElement("output");
-        const luckySlider = document.createElement("input");
-        const luckyBounds = document.createElement("div");
-        const luckyMinimum = document.createElement("span");
-        const luckyMaximum = document.createElement("span");
-        const linkedSongsHeader = document.createElement("div");
-        const linkedSongsLabel = document.createElement("label");
-        const linkedSongsValue = document.createElement("output");
-        const linkedSongsSlider = document.createElement("input");
-        const linkedSongsBounds = document.createElement("div");
-        const linkedSongsMinimum = document.createElement("span");
-        const linkedSongsMaximum = document.createElement("span");
-        const contactSection = document.createElement("div");
-        const contactTitle = document.createElement("h3");
-        const contactDescription = document.createElement("p");
-        const pageContent = typeof document.querySelector === "function"
-            ? document.querySelector("main")
-            : null;
-        let previousBodyOverflow = "";
 
         launcherContainer.className = "settings-launcher-container";
         launcher.id = "settings-button";
@@ -345,6 +298,68 @@
         launcherLabel.textContent = "Settings";
         launcher.appendChild(launcherLabel);
         launcherContainer.appendChild(launcher);
+
+        let panelController = null;
+
+        function createSettingsPanel() {
+            const scrim = document.createElement("div");
+            const panel = document.createElement("div");
+            const header = document.createElement("div");
+            const title = document.createElement("h2");
+            const closeButton = document.createElement("button");
+            const closeIcon = document.createElement("span");
+            const appearanceSection = document.createElement("div");
+            const appearanceTitle = document.createElement("h3");
+            const appearanceDescription = document.createElement("p");
+            const themeControl = document.createElement("div");
+            const themeSelectLabel = document.createElement("label");
+            const themeSelectWrapper = document.createElement("div");
+            const themeSwatch = document.createElement("span");
+            const themeSelect = document.createElement("select");
+            const transparencySection = document.createElement("div");
+            const transparencyTitle = document.createElement("h3");
+            const transparencyDescription = document.createElement("p");
+            const transparencyHeader = document.createElement("div");
+            const transparencyLabel = document.createElement("label");
+            const transparencyValue = document.createElement("output");
+            const transparencySlider = document.createElement("input");
+            const transparencyBounds = document.createElement("div");
+            const transparencyMinimum = document.createElement("span");
+            const transparencyMaximum = document.createElement("span");
+            const resultSection = document.createElement("div");
+            const resultTitle = document.createElement("h3");
+            const resultDescription = document.createElement("p");
+            const resultHeader = document.createElement("div");
+            const resultLabel = document.createElement("label");
+            const resultValue = document.createElement("output");
+            const resultSlider = document.createElement("input");
+            const resultBounds = document.createElement("div");
+            const resultMinimum = document.createElement("span");
+            const resultMaximum = document.createElement("span");
+            const luckySection = document.createElement("div");
+            const luckyTitle = document.createElement("h3");
+            const luckyDescription = document.createElement("p");
+            const luckyHeader = document.createElement("div");
+            const luckyLabel = document.createElement("label");
+            const luckyValue = document.createElement("output");
+            const luckySlider = document.createElement("input");
+            const luckyBounds = document.createElement("div");
+            const luckyMinimum = document.createElement("span");
+            const luckyMaximum = document.createElement("span");
+            const linkedSongsHeader = document.createElement("div");
+            const linkedSongsLabel = document.createElement("label");
+            const linkedSongsValue = document.createElement("output");
+            const linkedSongsSlider = document.createElement("input");
+            const linkedSongsBounds = document.createElement("div");
+            const linkedSongsMinimum = document.createElement("span");
+            const linkedSongsMaximum = document.createElement("span");
+            const contactSection = document.createElement("div");
+            const contactTitle = document.createElement("h3");
+            const contactDescription = document.createElement("p");
+            const pageContent = typeof document.querySelector === "function"
+                ? document.querySelector("main")
+                : null;
+            let previousBodyOverflow = "";
 
         scrim.className = "settings-scrim";
         scrim.hidden = true;
@@ -402,10 +417,33 @@
             if (persist) storeResultLimit(selectedResultLimit);
         }
 
-        function applyUiTransparency(transparency, persist = true) {
+        let pendingTransparency = selectedUiTransparency;
+        let transparencyFramePending = false;
+
+        function schedulePanelOpacity(transparency) {
+            pendingTransparency = transparency;
+            if (transparencyFramePending) return;
+
+            const render = () => {
+                transparencyFramePending = false;
+                setPanelOpacity(pendingTransparency);
+            };
+            if (typeof globalThis.requestAnimationFrame === "function") {
+                transparencyFramePending = true;
+                globalThis.requestAnimationFrame(render);
+            } else {
+                render();
+            }
+        }
+
+        function applyUiTransparency(transparency, persist = true, deferVisual = false) {
             selectedUiTransparency = parseUiTransparency(transparency)
                 ?? defaultUiTransparency;
-            setPanelOpacity(selectedUiTransparency);
+            if (deferVisual) {
+                schedulePanelOpacity(selectedUiTransparency);
+            } else {
+                setPanelOpacity(selectedUiTransparency);
+            }
             transparencySlider.value = String(selectedUiTransparency);
             transparencyValue.textContent = `${selectedUiTransparency}%`;
             transparencySlider.setAttribute(
@@ -487,7 +525,11 @@
         );
         transparencySlider.addEventListener(
             "input",
-            () => applyUiTransparency(transparencySlider.value)
+            () => applyUiTransparency(transparencySlider.value, false, true)
+        );
+        transparencySlider.addEventListener(
+            "change",
+            () => storeUiTransparency(selectedUiTransparency)
         );
         transparencyBounds.className = "settings-range-bounds";
         transparencyBounds.setAttribute("aria-hidden", "true");
@@ -649,7 +691,6 @@
             launcher.focus();
         }
 
-        launcher.addEventListener("click", () => panel.hidden ? openPanel() : closePanel());
         closeButton.addEventListener("click", closePanel);
         scrim.addEventListener("click", closePanel);
         document.addEventListener("keydown", event => {
@@ -679,12 +720,24 @@
 
         document.body.appendChild(scrim);
         document.body.appendChild(panel);
-        document.body.appendChild(launcherContainer);
         applyTheme(selectedTheme, false);
         applyResultLimit(selectedResultLimit, false);
         applyUiTransparency(selectedUiTransparency, false);
         applyLuckyConnections(selectedLuckyConnections, false);
         applyLuckyLinkedSongs(selectedLuckyLinkedSongs, false);
+
+            return { closePanel, openPanel, panel };
+        }
+
+        launcher.addEventListener("click", () => {
+            panelController ??= createSettingsPanel();
+            if (panelController.panel.hidden) {
+                panelController.openPanel();
+            } else {
+                panelController.closePanel();
+            }
+        });
+        document.body.appendChild(launcherContainer);
     }
 
     if (document.readyState === "loading") {

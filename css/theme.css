@@ -283,6 +283,15 @@ body {
             color-mix(in srgb, var(--background) var(--background-veil-end), transparent)
         ),
         url("../assets/background.png");
+    background-image:
+        linear-gradient(
+            color-mix(in srgb, var(--background) var(--background-veil-start), transparent),
+            color-mix(in srgb, var(--background) var(--background-veil-end), transparent)
+        ),
+        image-set(
+            url("../assets/background.webp") type("image/webp"),
+            url("../assets/background.png") type("image/png")
+        );
     background-position: center, center;
     background-size: cover, cover;
     background-attachment: fixed, fixed;
@@ -395,7 +404,7 @@ a {
 .settings-panel {
     --outline-fill: var(--surface);
     --outline-backdrop-base: var(--surface);
-    --outline-backdrop-overlap: 0.5x;
+    --outline-backdrop-overlap: 0.5px;
     --outline-shadow:
         0 18px 46px var(--paper-shadow),
         inset 0 0 0 1px color-mix(in srgb, var(--border) 72%, transparent);
@@ -489,12 +498,24 @@ a {
 }
 
 .picker-link {
+    appearance: none;
     display: grid;
     width: 56px;
     height: 56px;
     place-items: center;
     align-self: center;
     margin-top: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.picker-link:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
 }
 
 .picker-link img {
@@ -503,6 +524,16 @@ a {
     height: 54px;
     object-fit: contain;
     filter: var(--arrow-contrast-filter);
+    pointer-events: none;
+    transition: transform 140ms ease;
+}
+
+.picker-link:not(:disabled):hover img {
+    transform: scale(1.08);
+}
+
+.picker-link:not(:disabled):active img {
+    transform: scale(0.94);
 }
 
 .autocomplete {
@@ -626,6 +657,10 @@ a {
     border: 0;
     border-radius: 0;
     background: url("../assets/magnifier.png") center / contain no-repeat;
+    background: image-set(
+        url("../assets/magnifier.webp") type("image/webp"),
+        url("../assets/magnifier.png") type("image/png")
+    ) center / contain no-repeat;
     content: "";
     filter: var(--asset-ink-filter);
     transform: translateY(-50%);
@@ -1001,6 +1036,10 @@ a {
     width: 46px;
     height: 38px;
     background: url("../assets/arrow.png") center / 40px 40px no-repeat;
+    background: image-set(
+        url("../assets/arrow.webp") type("image/webp"),
+        url("../assets/arrow.png") type("image/png")
+    ) center / 40px 40px no-repeat;
     content: "";
     flex: none;
     filter: var(--arrow-contrast-filter);
@@ -1154,6 +1193,10 @@ a {
     width: 42px;
     height: 54px;
     background: url("../assets/arrow.png") center / 44px 44px no-repeat;
+    background: image-set(
+        url("../assets/arrow.webp") type("image/webp"),
+        url("../assets/arrow.png") type("image/png")
+    ) center / 44px 44px no-repeat;
     content: "";
     flex: none;
     filter: var(--arrow-contrast-filter);
@@ -1885,8 +1928,78 @@ body ::placeholder {
 }
 
 @media (max-width: 760px) {
+    :root {
+        /* Avoid repainting eight text-shadow layers for every line on phones. */
+        --universal-text-outline: 0 1px 0 var(--text-outline-color);
+    }
+
     body {
+        background-image:
+            linear-gradient(
+                color-mix(in srgb, var(--background) var(--background-veil-start), transparent),
+                color-mix(in srgb, var(--background) var(--background-veil-end), transparent)
+            ),
+            url("../assets/background-mobile.png");
+        background-image:
+            linear-gradient(
+                color-mix(in srgb, var(--background) var(--background-veil-start), transparent),
+                color-mix(in srgb, var(--background) var(--background-veil-end), transparent)
+            ),
+            image-set(
+                url("../assets/background-mobile.webp") type("image/webp"),
+                url("../assets/background-mobile.png") type("image/png")
+            );
         background-attachment: scroll, scroll;
+    }
+
+    body::before {
+        display: none;
+    }
+
+    .card,
+    .settings-panel,
+    .error-panel,
+    .settings-scrim {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .card,
+    .settings-panel {
+        --outline-shadow:
+            0 6px 16px color-mix(in srgb, var(--paper-shadow) 68%, transparent),
+            inset 0 0 0 1px color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .suggestions {
+        --outline-shadow: 0 6px 15px color-mix(in srgb, var(--paper-shadow) 72%, transparent);
+    }
+
+    /* These repaint while typing, so keep their text and focus treatment cheap. */
+    .search-box,
+    .search-box *,
+    .suggestions,
+    .suggestions * {
+        text-shadow: none !important;
+    }
+
+    .search-box:focus-within {
+        --outline-shadow: inset 0 1px 0 var(--paper-highlight);
+        transform: none;
+    }
+
+    /* Defer clearly below-the-fold, non-interactive sections until needed. */
+    .home-how,
+    .home-daily-card,
+    .daily-stats-card,
+    .privacy-summary,
+    .privacy-policy-card {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 520px;
+    }
+
+    .privacy-policy-card {
+        contain-intrinsic-size: auto 1500px;
     }
 
     .page-shell,
@@ -1977,6 +2090,33 @@ body ::placeholder {
     }
 }
 
+@media (hover: none), (pointer: coarse) {
+    .search-box,
+    .primary-button,
+    .secondary-button,
+    .text-button,
+    .settings-button,
+    .suggestion,
+    #choices button {
+        transition: none;
+    }
+
+    .search-box:hover,
+    .search-box:focus-within {
+        --outline-shadow: inset 0 1px 0 var(--paper-highlight);
+        transform: none;
+    }
+
+    .primary-button:hover:not(:disabled),
+    .secondary-button:hover:not(:disabled),
+    .text-button:hover:not(:disabled),
+    .settings-button:hover,
+    #choices button:not(:disabled):hover,
+    .settings-close-button:hover {
+        transform: none;
+    }
+}
+
 @media (max-width: 480px) {
     :root {
         --frame-width: 15px;
@@ -2049,6 +2189,20 @@ body ::placeholder {
     *::after {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --ui-panel-opacity: 100% !important;
+    }
+
+    .card,
+    .settings-panel,
+    .error-panel,
+    .settings-scrim {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 }
 

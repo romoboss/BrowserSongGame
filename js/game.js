@@ -15,6 +15,7 @@ const restartButton = document.getElementById("restart-challenge");
 let startArtist = null;
 let targetArtist = null;
 let currentArtist = null;
+let currentSongIndex = [];
 let currentSuggestions = [];
 let activeSuggestionIndex = -1;
 let route = [];
@@ -68,8 +69,8 @@ function findReachableArtists(startId) {
     const traversed = new Set([startKey]);
     const queue = [startKey];
 
-    while (queue.length > 0) {
-        const artistId = queue.shift();
+    for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
+        const artistId = queue[queueIndex];
         for (const songId of database.artistSongs[artistId] || []) {
             for (const nextArtistId of database.songData[songId]?.artists || []) {
                 const nextId = String(nextArtistId);
@@ -117,6 +118,28 @@ function formatTimer(milliseconds) {
 
 function updateTimer() {
     timerElement.textContent = formatTimer(Date.now() - startedAt);
+}
+
+function stopTimer() {
+    if (timerHandle === null) return;
+    clearInterval(timerHandle);
+    timerHandle = null;
+}
+
+function startTimer() {
+    if (timerHandle !== null || document.hidden) return;
+    timerHandle = setInterval(updateTimer, 1000);
+    timerHandle?.unref?.();
+}
+
+function handleVisibilityChange() {
+    if (document.hidden) {
+        stopTimer();
+        return;
+    }
+
+    updateTimer();
+    startTimer();
 }
 
 function renderRoutePreview() {
@@ -167,7 +190,7 @@ function isValidDateKey(value) {
 }
 
 function finishGame() {
-    if (timerHandle !== null) clearInterval(timerHandle);
+    stopTimer();
 
     const parameters = new URLSearchParams({
         v: "1",
@@ -194,6 +217,11 @@ function selectArtist(artist, song = null) {
     if (song) route.push({ songId: song.id, artistId: artist.id });
 
     currentArtist = artist;
+    currentSongIndex = (database.artistSongs[artist.id] || []).flatMap(songId => {
+        const title = database.songs[songId];
+        if (!title || !database.songData[songId]?.artists) return [];
+        return [{ id: String(songId), normalizedTitle: normalize(title) }];
+    });
     artistElement.textContent = artist.name;
     moveCountElement.textContent = `${route.length - 1} move${route.length === 2 ? "" : "s"}`;
     choicesElement.replaceChildren();
@@ -310,9 +338,7 @@ function updateSuggestions() {
         return;
     }
 
-    const matches = (database.artistSongs[currentArtist.id] || [])
-        .map(getSong)
-        .filter(song => song && normalize(song.title).includes(query));
+    const matches = currentSongIndex.filter(song => song.normalizedTitle.includes(query));
 
     if (matches.length === 0) {
         closeSuggestions();
@@ -320,7 +346,11 @@ function updateSuggestions() {
         return;
     }
 
-    renderSuggestions(matches.slice(0, getMaximumSuggestions()), matches.length);
+    const visibleMatches = matches
+        .slice(0, getMaximumSuggestions())
+        .map(song => getSong(song.id))
+        .filter(Boolean);
+    renderSuggestions(visibleMatches, matches.length);
 }
 
 function handleSearchKeydown(event) {
@@ -386,8 +416,7 @@ function initialize() {
     route = [{ artistId: startArtist.id }];
     startedAt = Date.now();
     updateTimer();
-    timerHandle = setInterval(updateTimer, 1000);
-    timerHandle?.unref?.();
+    startTimer();
     selectArtist(startArtist);
 }
 
@@ -413,5 +442,6 @@ if (missingElements.length > 0) {
     searchInput.addEventListener("keydown", handleSearchKeydown);
     searchInput.addEventListener("blur", () => setTimeout(closeSuggestions, 150));
     restartButton.addEventListener("click", restartChallenge);
+    document.addEventListener?.("visibilitychange", handleVisibilityChange);
     initialize();
 }

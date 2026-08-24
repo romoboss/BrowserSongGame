@@ -221,6 +221,9 @@ test("GitHub automation archives the pre-push database and deploys the bot updat
     );
 
     assert.match(workflow, /PREVIOUS_SHA: \$\{\{ github\.event\.before \}\}/);
+    assert.match(workflow, /schedule:\s*\n\s*- cron: "10 0 \* \* \*"/);
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.match(workflow, /PREVIOUS_SHA=\$\(git rev-parse HEAD\)/);
     assert.match(workflow, /previous_database_path=data\/database\.js/);
     assert.match(workflow, /previous_database_path=database\.js/);
     assert.match(workflow, /git show "\$\{PREVIOUS_SHA\}:\$\{previous_database_path\}"/);

@@ -10,10 +10,13 @@ const navigationSource = await readFile(
     "utf8"
 );
 
-test("package metadata is the website version source instead of a hard-coded value", () => {
+test("the static navigation version stays in sync with package metadata", () => {
     assert.match(packageMetadata.version, /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/);
-    assert.doesNotMatch(navigationSource, /Website v\d/);
-    assert.match(navigationSource, /\.\/package\.json/);
+    const versionMatch = navigationSource.match(/const websiteVersion = "([^"]+)";/);
+    assert.ok(versionMatch, "Expected navigation to declare its static website version");
+    assert.equal(versionMatch[1], packageMetadata.version);
+    assert.doesNotMatch(navigationSource, /fetch\s*\(/);
+    assert.doesNotMatch(navigationSource, /\.\/package\.json/);
 });
 
 class TestElement {
@@ -96,8 +99,7 @@ function installEnvironment({
     storedState = null,
     loading = false,
     search = "",
-    hash = "",
-    websiteVersion = packageMetadata.version
+    hash = ""
 }) {
     const body = new TestElement("body", "body");
     body.dataset.page = page;
@@ -124,7 +126,7 @@ function installEnvironment({
         return {
             ok: true,
             async json() {
-                return { version: websiteVersion };
+                return { version: packageMetadata.version };
             }
         };
     };
@@ -202,9 +204,7 @@ test("injects an accessible desktop sidebar and marks the current page", async (
     assert.equal(version.tagName, "FOOTER");
     assert.equal(version.textContent, `Website v${packageMetadata.version}`);
     assert.equal(version.getAttribute("aria-label"), `Website version ${packageMetadata.version}`);
-    assert.deepEqual(fetchRequests, [
-        { url: "./package.json", options: { cache: "no-store" } }
-    ]);
+    assert.deepEqual(fetchRequests, []);
 });
 
 test("the toggle persists open and closed states", async () => {

@@ -216,6 +216,17 @@ test("daily page obtains today's pair through the saved-first resolver", async (
     assert.equal(elements["daily-error"].hidden, true);
 });
 
+test("a saved daily challenge renders without loading the song database", async () => {
+    const elements = await renderDaily("2031-05-07T12:00:00Z", null);
+    const challenge = getRenderedChallenge(elements);
+
+    assert.deepEqual(challenge, { start: "1", end: "3", daily: "2031-05-07" });
+    assert.equal(elements["daily-start-artist"].textContent, "Historic Alpha");
+    assert.equal(elements["daily-end-artist"].textContent, "Historic Bravo");
+    assert.equal(elements["daily-content"].hidden, false);
+    assert.equal(elements["daily-error"].hidden, true);
+});
+
 test("daily page shows today's first completion and aggregate stats", async () => {
     const elements = await renderDaily(
         "2031-05-10T12:00:00Z",

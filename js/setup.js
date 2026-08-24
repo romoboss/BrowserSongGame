@@ -1,4 +1,4 @@
-const database = globalThis.SONG_DATABASE;
+const sourceDatabase = globalThis.SONG_ROUTE_DATABASE || globalThis.SONG_DATABASE;
 
 const form = document.getElementById("challenge-form");
 const startInput = document.getElementById("start-input");
@@ -7,6 +7,7 @@ const endInput = document.getElementById("end-input");
 const endSuggestions = document.getElementById("end-suggestions");
 const startButton = document.getElementById("start-game");
 const luckyButton = document.getElementById("lucky-button");
+const swapButton = document.getElementById("swap-artists");
 const shareButton = document.getElementById("share-link");
 const statusElement = document.getElementById("setup-status");
 const canonicalSiteUrl = "https://songaveler.romoboss.com/";
@@ -16,8 +17,8 @@ let selectedEndArtist = null;
 let reachableEndIds = null;
 let startPicker = null;
 let endPicker = null;
-const reachabilityCache = new Map();
-const distanceCache = new Map();
+let routeDatabase = null;
+let routeGraphPromise = null;
 
 function normalize(value) {
     return String(value)
@@ -25,6 +26,176 @@ function normalize(value) {
         .replace(/[\u0300-\u036f]/g, "")
         .toLocaleLowerCase()
         .trim();
+}
+
+function buildAdjacency(database, artistIds) {
+    const adjacency = [];
+
+    for (const id of artistIds) {
+        const neighbors = new Set();
+        for (const songId of database.artistSongs[id] || []) {
+            for (const nextArtistId of database.songData?.[songId]?.artists || []) {
+                const nextId = String(nextArtistId);
+                if (nextId !== id) neighbors.add(nextId);
+            }
+        }
+        adjacency[Number(id)] = [...neighbors];
+    }
+
+    return adjacency;
+}
+
+function buildComponentMetadata(records, adjacency) {
+    const recordsById = new Map(records.map(record => [record.id, record]));
+    const componentSizes = [];
+    let nextComponentId = 0;
+
+    for (const record of records) {
+        if (record.songCount === 1 || record.componentId !== null) continue;
+
+        const componentId = nextComponentId;
+        nextComponentId += 1;
+        const queue = [record.id];
+        record.componentId = componentId;
+
+        for (let cursor = 0; cursor < queue.length; cursor += 1) {
+            const artistId = queue[cursor];
+            for (const nextIdValue of adjacency[Number(artistId)] || []) {
+                const nextRecord = recordsById.get(String(nextIdValue));
+                if (!nextRecord || nextRecord.songCount === 1 || nextRecord.componentId !== null) {
+                    continue;
+                }
+                nextRecord.componentId = componentId;
+                queue.push(nextRecord.id);
+            }
+        }
+    }
+
+    for (const record of records) {
+        if (record.songCount !== 1) continue;
+        for (const nextIdValue of adjacency[Number(record.id)] || []) {
+            const componentId = recordsById.get(String(nextIdValue))?.componentId;
+            if (componentId !== null && componentId !== undefined) {
+                record.componentId = componentId;
+                break;
+            }
+        }
+    }
+
+    for (const record of records) {
+        if (record.componentId === null) continue;
+        componentSizes[record.componentId] = (componentSizes[record.componentId] || 0) + 1;
+    }
+
+    return componentSizes;
+}
+
+function prepareRouteDatabase(database) {
+    if (Array.isArray(database?.records)) {
+        const records = database.records.map(row => ({
+            id: String(row[0]),
+            name: row[1],
+            normalizedName: normalize(row[1]),
+            songCount: row[2],
+            componentId: row[3] ?? null
+        }));
+        records.sort((left, right) =>
+            left.name.localeCompare(right.name) || Number(left.id) - Number(right.id)
+        );
+        return {
+            records,
+            recordsById: new Map(records.map(record => [record.id, record])),
+            adjacency: Array.isArray(globalThis.SONG_ROUTE_GRAPH?.adjacency)
+                ? globalThis.SONG_ROUTE_GRAPH.adjacency
+                : null,
+            terminalAdjacency: database.terminalAdjacency || [],
+            componentSizes: database.componentSizes || []
+        };
+    }
+
+    const artistIds = Object.keys(database?.artists || {});
+    const records = artistIds.map(id => ({
+        id,
+        name: database.artists[id],
+        normalizedName: normalize(database.artists[id]),
+        songCount: (database.artistSongs[id] || []).length,
+        componentId: null
+    }));
+    const adjacency = buildAdjacency(database, artistIds);
+    const componentSizes = buildComponentMetadata(records, adjacency);
+    records.sort((left, right) =>
+        left.name.localeCompare(right.name) || Number(left.id) - Number(right.id)
+    );
+
+    return {
+        records,
+        recordsById: new Map(records.map(record => [record.id, record])),
+        adjacency,
+        terminalAdjacency: [],
+        componentSizes
+    };
+}
+
+function getArtistNeighbors(artistId) {
+    const index = Number(artistId);
+    return routeDatabase.adjacency?.[index]
+        || routeDatabase.terminalAdjacency[index]
+        || [];
+}
+
+function getRouteGraphUrl() {
+    const version = encodeURIComponent(sourceDatabase.graphVersion || "1");
+    return `./data/route-graph.js?v=${version}`;
+}
+
+function useLoadedRouteGraph() {
+    const graph = globalThis.SONG_ROUTE_GRAPH;
+    if (!Array.isArray(graph?.adjacency)) return false;
+    if (
+        sourceDatabase.graphVersion
+        && graph.version
+        && graph.version !== sourceDatabase.graphVersion
+    ) {
+        return false;
+    }
+    routeDatabase.adjacency = graph.adjacency;
+    return true;
+}
+
+function loadRouteGraph() {
+    if (routeDatabase.adjacency || useLoadedRouteGraph()) return Promise.resolve();
+    if (routeGraphPromise) return routeGraphPromise;
+    if (!document.head?.appendChild) {
+        return Promise.reject(new Error("The route graph could not be loaded on this page."));
+    }
+
+    routeGraphPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = getRouteGraphUrl();
+        script.async = true;
+        script.addEventListener("load", () => {
+            if (useLoadedRouteGraph()) resolve();
+            else reject(new Error("The downloaded route graph is invalid."));
+        });
+        script.addEventListener("error", () => {
+            reject(new Error("The route graph download failed."));
+        });
+        document.head.appendChild(script);
+    }).catch(error => {
+        routeGraphPromise = null;
+        throw error;
+    });
+
+    return routeGraphPromise;
+}
+
+function prefetchRouteGraph() {
+    if (routeDatabase.adjacency || !document.head?.appendChild) return;
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.as = "script";
+    link.href = getRouteGraphUrl();
+    document.head.appendChild(link);
 }
 
 function setStatus(message, isError = false) {
@@ -116,6 +287,7 @@ function updateFormState() {
     const sameArtist = selectedStartArtist?.id === selectedEndArtist?.id;
     const ready = Boolean(selectedStartArtist && selectedEndArtist && !sameArtist);
     startButton.disabled = !ready;
+    swapButton.disabled = !ready;
     shareButton.disabled = !ready;
 
     if (selectedStartArtist && reachableEndIds?.size === 0) {
@@ -131,82 +303,98 @@ function updateFormState() {
 
 function findReachableArtists(startId) {
     const cacheKey = String(startId);
-    if (reachabilityCache.has(cacheKey)) return reachabilityCache.get(cacheKey);
+    const startRecord = routeDatabase.recordsById.get(cacheKey);
+    if (!startRecord) return new Set();
 
-    const reachable = new Set(findArtistDistances(cacheKey).keys());
+    if (startRecord.componentId !== null) {
+        const componentId = startRecord.componentId;
+        return {
+            size: Math.max(0, (routeDatabase.componentSizes[componentId] || 0) - 1),
+            has(id) {
+                const candidate = routeDatabase.recordsById.get(String(id));
+                return candidate?.id !== cacheKey && candidate?.componentId === componentId;
+            }
+        };
+    }
+
+    const reachable = new Set(
+        getArtistNeighbors(cacheKey).map(String)
+    );
     reachable.delete(cacheKey);
-    reachabilityCache.set(cacheKey, reachable);
     return reachable;
 }
 
-function findArtistDistances(startId) {
+function findArtistDistances(startId, maximumDistance = Infinity) {
     const cacheKey = String(startId);
-    if (distanceCache.has(cacheKey)) return distanceCache.get(cacheKey);
-
     const distances = new Map([[cacheKey, 0]]);
     const queue = [cacheKey];
 
-    while (queue.length > 0) {
-        const artistId = queue.shift();
+    for (let cursor = 0; cursor < queue.length; cursor += 1) {
+        const artistId = queue[cursor];
         const nextDistance = distances.get(artistId) + 1;
-        for (const songId of database.artistSongs[artistId] || []) {
-            for (const nextArtistId of database.songData[songId]?.artists || []) {
-                const nextId = String(nextArtistId);
-                if (distances.has(nextId)) continue;
+        if (nextDistance > maximumDistance) continue;
 
-                distances.set(nextId, nextDistance);
-                if ((database.artistSongs[nextId] || []).length !== 1) {
-                    queue.push(nextId);
-                }
+        for (const nextArtistId of getArtistNeighbors(artistId)) {
+            const nextId = String(nextArtistId);
+            if (distances.has(nextId)) continue;
+
+            distances.set(nextId, nextDistance);
+            if (
+                nextDistance < maximumDistance
+                && routeDatabase.recordsById.get(nextId)?.songCount !== 1
+            ) {
+                queue.push(nextId);
             }
         }
     }
 
-    distanceCache.set(cacheKey, distances);
     return distances;
 }
 
 function getArtistRecord(id) {
-    const name = database.artists[id];
-    return name ? {
-        id: String(id),
-        name,
-        normalizedName: normalize(name),
-        songCount: (database.artistSongs[id] || []).length
-    } : null;
+    return routeDatabase.recordsById.get(String(id)) || null;
 }
 
 function rankArtists(search, allowedIds = null) {
-    return Object.entries(database.artists)
-        .map(([id]) => getArtistRecord(id))
-        .filter(artist =>
-            artist
-            && (!allowedIds || allowedIds.has(artist.id))
-            && artist.normalizedName.includes(search)
-        )
-        .sort((left, right) => {
-            const leftExact = left.normalizedName === search;
-            const rightExact = right.normalizedName === search;
-            if (leftExact !== rightExact) return leftExact ? -1 : 1;
+    const maximumSuggestions = getMaximumSuggestions();
+    const exactMatches = [];
+    const prefixMatches = [];
+    const otherMatches = [];
 
-            const leftPrefix = left.normalizedName.startsWith(search);
-            const rightPrefix = right.normalizedName.startsWith(search);
-            if (leftPrefix !== rightPrefix) return leftPrefix ? -1 : 1;
+    for (const artist of routeDatabase.records) {
+        if (allowedIds && !allowedIds.has(artist.id)) continue;
+        if (!artist.normalizedName.includes(search)) continue;
 
-            return left.name.localeCompare(right.name) || Number(left.id) - Number(right.id);
-        })
-        .slice(0, getMaximumSuggestions());
+        const bucket = artist.normalizedName === search
+            ? exactMatches
+            : artist.normalizedName.startsWith(search)
+                ? prefixMatches
+                : otherMatches;
+        if (bucket.length < maximumSuggestions) bucket.push(artist);
+    }
+
+    return [...exactMatches, ...prefixMatches, ...otherMatches].slice(0, maximumSuggestions);
 }
 
 function createArtistPicker(input, suggestionList, onSelectionChange, getAllowedIds = () => null) {
     let selectedArtist = null;
     let visibleArtists = [];
     let activeIndex = -1;
+    let scheduledFrame = null;
+    let renderedArtistIds = "";
+
+    function cancelScheduledUpdate() {
+        if (scheduledFrame === null) return;
+        globalThis.cancelAnimationFrame?.(scheduledFrame);
+        scheduledFrame = null;
+    }
 
     function close() {
+        cancelScheduledUpdate();
         visibleArtists = [];
         activeIndex = -1;
-        suggestionList.replaceChildren();
+        renderedArtistIds = "";
+        if (suggestionList.children.length > 0) suggestionList.replaceChildren();
         suggestionList.hidden = true;
         input.setAttribute("aria-expanded", "false");
         input.removeAttribute("aria-activedescendant");
@@ -235,7 +423,22 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
     function render(artists) {
         visibleArtists = artists;
         activeIndex = -1;
-        suggestionList.replaceChildren();
+        const nextArtistIds = artists.map(artist => artist.id).join(",");
+
+        if (nextArtistIds === renderedArtistIds) {
+            for (const element of suggestionList.children) {
+                element.classList.toggle("active", false);
+                element.setAttribute("aria-selected", "false");
+            }
+            suggestionList.hidden = false;
+            input.setAttribute("aria-expanded", "true");
+            input.removeAttribute("aria-activedescendant");
+            return;
+        }
+
+        renderedArtistIds = nextArtistIds;
+        const elements = [];
+        const fragment = document.createDocumentFragment?.();
 
         for (const [index, artist] of artists.entries()) {
             const button = document.createElement("button");
@@ -246,6 +449,7 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
             button.type = "button";
             button.classList.add("suggestion");
             button.dataset.artistId = artist.id;
+            button.dataset.suggestionIndex = String(index);
             button.setAttribute("role", "option");
             button.setAttribute("aria-selected", "false");
 
@@ -256,22 +460,19 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
 
             button.appendChild(name);
             button.appendChild(detail);
-            button.addEventListener("mouseenter", () => setActive(index));
-            button.addEventListener("mousedown", event => event.preventDefault());
-            button.addEventListener("click", () => choose(artist));
-            suggestionList.appendChild(button);
+            elements.push(button);
+            fragment?.appendChild(button);
         }
+
+        if (fragment) suggestionList.replaceChildren(fragment);
+        else suggestionList.replaceChildren(...elements);
 
         suggestionList.hidden = false;
         input.setAttribute("aria-expanded", "true");
     }
 
     function update() {
-        if (selectedArtist && input.value !== selectedArtist.name) {
-            selectedArtist = null;
-            delete input.dataset.artistId;
-            onSelectionChange(null);
-        }
+        invalidateEditedSelection();
 
         const query = normalize(input.value);
         if (!query) {
@@ -288,9 +489,66 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
         render(matches);
     }
 
-    input.addEventListener("input", update);
-    input.addEventListener("focus", update);
+    function invalidateEditedSelection() {
+        if (!selectedArtist || input.value === selectedArtist.name) return;
+        selectedArtist = null;
+        delete input.dataset.artistId;
+        onSelectionChange(null);
+    }
+
+    function scheduleUpdate() {
+        if (typeof globalThis.requestAnimationFrame !== "function") {
+            update();
+            return;
+        }
+        if (scheduledFrame !== null) return;
+        scheduledFrame = globalThis.requestAnimationFrame(() => {
+            scheduledFrame = null;
+            update();
+        });
+    }
+
+    function flushScheduledUpdate() {
+        if (scheduledFrame === null) return;
+        cancelScheduledUpdate();
+        update();
+    }
+
+    function getSuggestionFromEvent(event) {
+        let element = event.target;
+        while (element && element !== suggestionList) {
+            if (element.classList?.contains("suggestion")) return element;
+            element = element.parentNode;
+        }
+        return null;
+    }
+
+    suggestionList.addEventListener("mouseover", event => {
+        const suggestion = getSuggestionFromEvent(event);
+        if (suggestion) setActive(Number(suggestion.dataset.suggestionIndex));
+    });
+    suggestionList.addEventListener("mousedown", event => {
+        if (getSuggestionFromEvent(event)) event.preventDefault();
+    });
+    suggestionList.addEventListener("click", event => {
+        const suggestion = getSuggestionFromEvent(event);
+        const artist = suggestion && visibleArtists[Number(suggestion.dataset.suggestionIndex)];
+        if (artist) choose(artist);
+    });
+
+    input.addEventListener("input", () => {
+        invalidateEditedSelection();
+        scheduleUpdate();
+    });
+    input.addEventListener("focus", () => {
+        if (selectedArtist && input.value === selectedArtist.name) {
+            close();
+            return;
+        }
+        scheduleUpdate();
+    });
     input.addEventListener("keydown", event => {
+        flushScheduledUpdate();
         if (event.key === "ArrowDown" && visibleArtists.length > 0) {
             event.preventDefault();
             setActive(activeIndex < 0 ? 0 : activeIndex + 1);
@@ -318,10 +576,12 @@ function createArtistPicker(input, suggestionList, onSelectionChange, getAllowed
     };
 }
 
-function chooseLuckyArtists() {
+function generateLuckyChallenge() {
     const requiredLinkedSongs = getLuckyLinkedSongs();
-    const candidates = Object.keys(database.artists)
-        .filter(id => (database.artistSongs[id] || []).length >= requiredLinkedSongs);
+    const candidates = routeDatabase.records
+        .filter(artist => artist.songCount >= requiredLinkedSongs)
+        .map(artist => artist.id)
+        .sort((left, right) => Number(left) - Number(right));
     const shuffledStarts = [...candidates];
     for (let index = shuffledStarts.length - 1; index > 0; index -= 1) {
         const swapIndex = Math.floor(Math.random() * (index + 1));
@@ -333,7 +593,7 @@ function chooseLuckyArtists() {
     const requiredConnections = getLuckyConnections();
 
     for (const startId of shuffledStarts) {
-        const distances = findArtistDistances(startId);
+        const distances = findArtistDistances(startId, requiredConnections);
         const possibleEnds = candidates.filter(endId =>
             endId !== startId
             && distances.get(endId) === requiredConnections
@@ -345,7 +605,7 @@ function chooseLuckyArtists() {
         startPicker.select(getArtistRecord(startId));
         endPicker.select(getArtistRecord(endId));
         setStatus(
-            `${database.artists[startId]} to ${database.artists[endId]}. `
+            `${getArtistRecord(startId).name} to ${getArtistRecord(endId).name}. `
             + `${requiredConnections} connection${requiredConnections === 1 ? "" : "s"} apart and ready to play.`
         );
         return;
@@ -360,13 +620,51 @@ function chooseLuckyArtists() {
     );
 }
 
+function chooseLuckyArtists() {
+    if (routeDatabase.adjacency) {
+        generateLuckyChallenge();
+        return;
+    }
+
+    luckyButton.disabled = true;
+    setStatus("Preparing a random challenge…");
+    return loadRouteGraph()
+        .then(generateLuckyChallenge)
+        .catch(error => {
+            console.error("Could not load the route graph:", error);
+            setStatus("The random challenge data could not be loaded. Please try again.", true);
+        })
+        .finally(() => {
+            luckyButton.disabled = false;
+        });
+}
+
+function swapSelectedArtists() {
+    if (!selectedStartArtist || !selectedEndArtist || selectedStartArtist.id === selectedEndArtist.id) {
+        updateFormState();
+        return;
+    }
+
+    const previousStartArtist = selectedStartArtist;
+    const previousEndArtist = selectedEndArtist;
+    startPicker.select(previousEndArtist);
+    endPicker.select(previousStartArtist);
+}
+
 function initialize() {
-    if (!database?.artists || !database?.artistSongs) {
+    const isRouteDatabase = Array.isArray(sourceDatabase?.records)
+        && Array.isArray(sourceDatabase?.componentSizes);
+    const isFullDatabase = sourceDatabase?.artists && sourceDatabase?.artistSongs
+        && sourceDatabase?.songData;
+    if (!isRouteDatabase && !isFullDatabase) {
         startInput.disabled = true;
         endInput.disabled = true;
         setStatus("The bundled artist database could not be loaded.", true);
         return;
     }
+
+    routeDatabase = prepareRouteDatabase(sourceDatabase);
+    if (isRouteDatabase) prefetchRouteGraph();
 
     endInput.disabled = true;
 
@@ -397,6 +695,7 @@ function initialize() {
     });
 
     luckyButton.addEventListener("click", chooseLuckyArtists);
+    swapButton.addEventListener("click", swapSelectedArtists);
     shareButton.addEventListener("click", shareChallenge);
 
     updateFormState();
@@ -410,6 +709,7 @@ const missingElements = [
     ["end-suggestions", endSuggestions],
     ["start-game", startButton],
     ["lucky-button", luckyButton],
+    ["swap-artists", swapButton],
     ["share-link", shareButton],
     ["setup-status", statusElement]
 ].filter(([, element]) => !element).map(([id]) => id);

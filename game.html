@@ -7,11 +7,14 @@
     <title>Songaveler Challenge</title>
     <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
     <link rel="apple-touch-icon" href="./assets/icon.png">
-    <script src="./js/settings.js?v=appearance-16"></script>
+    <script src="./js/settings-bootstrap.js?v=bootstrap-1"></script>
+    <script src="./js/settings.js?v=appearance-17" defer></script>
     <link rel="stylesheet" href="./css/styles.css?v=appearance-10">
-    <link rel="stylesheet" href="./css/theme.css?v=paper-17">
-    <link rel="stylesheet" href="./css/site.css?v=site-5">
-    <script src="./js/navigation.js?v=nav-5" defer></script>
+    <link rel="stylesheet" href="./css/theme.css?v=paper-19">
+    <link rel="stylesheet" href="./css/site.css?v=site-6">
+    <script src="./js/navigation.js?v=nav-6" defer></script>
+    <script src="./data/database.js?v=20260814T212403" defer></script>
+    <script src="./js/game.js?v=flow-9" defer></script>
 </head>
 <body class="game-page" data-page="game">
     <main class="page-shell wide-shell">
@@ -27,7 +30,7 @@
                 <strong id="start-artist" class="challenge-name">Loading...</strong>
             </div>
             <div class="challenge-arrow" aria-hidden="true">
-                <img src="./assets/arrow.png" alt="">
+                <img src="./assets/arrow.png" alt="" width="192" height="192">
             </div>
             <div class="challenge-endpoint">
                 <span class="challenge-label">Target</span>
@@ -50,7 +53,7 @@
             <div class="autocomplete">
                 <label class="visually-hidden" for="search">Find one of this artist's songs</label>
                 <div class="search-box">
-                    <img class="search-icon" src="./assets/magnifier.png" alt="">
+                    <img class="search-icon" src="./assets/magnifier.png" alt="" width="192" height="192">
                     <input
                         id="search"
                         type="search"
@@ -94,7 +97,5 @@
         </div>
     </main>
 
-    <script src="./data/database.js?v=20260715T200355"></script>
-    <script src="./js/game.js?v=flow-8"></script>
 </body>
 </html>

@@ -29,6 +29,15 @@ body.site-nav-enabled.site-nav-open {
             color-mix(in srgb, var(--surface-muted) 94%, transparent)
         ),
         url("../assets/background.png") center / cover;
+    background:
+        linear-gradient(
+            color-mix(in srgb, var(--surface) 92%, transparent),
+            color-mix(in srgb, var(--surface-muted) 94%, transparent)
+        ),
+        image-set(
+            url("../assets/background.webp") type("image/webp"),
+            url("../assets/background.png") type("image/png")
+        ) center / cover;
     box-shadow: 8px 0 24px color-mix(in srgb, var(--ink) 22%, transparent);
     transform: translateX(calc(-100% - 12px));
     transition: transform 180ms ease;
@@ -598,6 +607,27 @@ body.site-nav-open .site-nav-toggle-icon::before {
 
     .site-sidebar {
         width: min(var(--site-sidebar-width), 84vw);
+        background:
+            linear-gradient(
+                color-mix(in srgb, var(--surface) 96%, transparent),
+                color-mix(in srgb, var(--surface-muted) 97%, transparent)
+            ),
+            url("../assets/background-mobile.png") center / cover;
+        background:
+            linear-gradient(
+                color-mix(in srgb, var(--surface) 96%, transparent),
+                color-mix(in srgb, var(--surface-muted) 97%, transparent)
+            ),
+            image-set(
+                url("../assets/background-mobile.webp") type("image/webp"),
+                url("../assets/background-mobile.png") type("image/png")
+            ) center / cover;
+        box-shadow: 4px 0 12px color-mix(in srgb, var(--ink) 18%, transparent);
+    }
+
+    .site-nav-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 
     body.site-nav-open .site-nav-toggle {
@@ -638,6 +668,19 @@ body.site-nav-open .site-nav-toggle-icon::before {
 
     .privacy-summary-list {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    body.site-nav-enabled,
+    .site-nav-toggle,
+    .site-nav-link {
+        transition: none;
+    }
+
+    .site-nav-toggle:hover,
+    .site-nav-link:hover {
+        transform: none;
     }
 }
 
@@ -682,6 +725,13 @@ body.site-nav-open .site-nav-toggle-icon::before {
     .site-nav-toggle,
     .site-nav-link {
         transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .site-nav-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 }
 

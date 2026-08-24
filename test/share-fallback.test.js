@@ -10,6 +10,7 @@ const elements = installFakeDocument([
     "end-suggestions",
     "start-game",
     "lucky-button",
+    "swap-artists",
     "share-link",
     "setup-status"
 ]);
@@ -34,15 +35,15 @@ await import("../js/setup.js");
 test("share link falls back when the Clipboard API is unavailable", async () => {
     elements["start-input"].value = "Start";
     elements["start-input"].dispatch("input");
-    elements["start-suggestions"].children
-        .find(element => element.dataset.artistId === "1")
-        .dispatch("click");
+    const startSuggestion = elements["start-suggestions"].children
+        .find(element => element.dataset.artistId === "1");
+    elements["start-suggestions"].dispatch("click", { target: startSuggestion });
 
     elements["end-input"].value = "Target";
     elements["end-input"].dispatch("input");
-    elements["end-suggestions"].children
-        .find(element => element.dataset.artistId === "3")
-        .dispatch("click");
+    const endSuggestion = elements["end-suggestions"].children
+        .find(element => element.dataset.artistId === "3");
+    elements["end-suggestions"].dispatch("click", { target: endSuggestion });
 
     document.documentElement.dataset.theme = "dark-blue";
     await elements["share-link"].dispatch("click");

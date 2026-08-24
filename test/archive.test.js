@@ -87,6 +87,31 @@ function createDailyDatabase(reverseArtists = false) {
     return { artists, songs, artistSongs, songData };
 }
 
+function createCompactRouteDatabase(database) {
+    const artistIds = Object.keys(database.artists);
+    const adjacency = [];
+
+    for (const artistId of artistIds) {
+        const neighbors = new Set();
+        for (const songId of database.artistSongs[artistId] || []) {
+            for (const nextArtistId of database.songData[songId]?.artists || []) {
+                if (String(nextArtistId) !== artistId) neighbors.add(Number(nextArtistId));
+            }
+        }
+        adjacency[Number(artistId)] = [...neighbors];
+    }
+
+    return {
+        records: artistIds.map(artistId => [
+            Number(artistId),
+            database.artists[artistId],
+            database.artistSongs[artistId].length,
+            null
+        ]),
+        adjacency
+    };
+}
+
 await import("../js/daily-generator.js");
 
 function installDate(instant) {
@@ -125,6 +150,19 @@ test("daily generator is deterministic across database insertion order", () => {
     assert.equal(first.dateKey, "2035-11-12");
     assert.equal(first.requiredConnections, 2);
     assert.equal(first.requiredLinkedSongs, 25);
+});
+
+test("compact route data generates the same daily pair as the full song database", () => {
+    const generator = globalThis.SongavelerDailyGenerator;
+    const database = createDailyDatabase();
+    const routeDatabase = createCompactRouteDatabase(database);
+
+    for (const dateKey of ["2035-11-12", "2035-11-13", "2036-02-29"]) {
+        assert.deepEqual(
+            generator.generate(routeDatabase, dateKey),
+            generator.generate(database, dateKey)
+        );
+    }
 });
 
 test("daily generator accepts only real YYYY-MM-DD dates", () => {
@@ -318,6 +356,49 @@ test("archive renders persisted names and rejects dates outside the available ra
     }
 });
 
+test("the latest archive selection wins while compact route data is loading", async () => {
+    const instant = "2031-05-10T12:00:00Z";
+    const elements = installFakeDocument(ARCHIVE_ELEMENT_IDS);
+    const routeDatabase = createCompactRouteDatabase(createDailyDatabase());
+    elements["archive-content"].hidden = true;
+    elements["archive-error"].hidden = true;
+    globalThis.SONG_DATABASE = null;
+    globalThis.SONG_ROUTE_DATABASE = {
+        ...routeDatabase,
+        graphVersion: "archive-race-fixture"
+    };
+    globalThis.SONG_ROUTE_GRAPH = {
+        version: "archive-race-fixture",
+        adjacency: routeDatabase.adjacency
+    };
+    installDate(instant);
+
+    try {
+        archiveImportNumber += 1;
+        await import(`../js/archive.js?archive-test=${archiveImportNumber}`);
+
+        elements["archive-date-input"].value = "2031-05-09";
+        const olderRequest = elements["archive-form"].dispatch(
+            "submit",
+            { preventDefault() {} }
+        );
+        elements["archive-date-input"].value = "2031-05-07";
+        const latestRequest = elements["archive-form"].dispatch(
+            "submit",
+            { preventDefault() {} }
+        );
+        await Promise.all([olderRequest, latestRequest]);
+
+        assert.equal(elements["archive-date-output"].textContent, "2031-05-07");
+        assert.equal(elements["archive-start-artist"].textContent, "Historic Alpha");
+        assert.equal(elements["archive-end-artist"].textContent, "Historic Bravo");
+    } finally {
+        globalThis.Date = RealDate;
+        delete globalThis.SONG_ROUTE_DATABASE;
+        delete globalThis.SONG_ROUTE_GRAPH;
+    }
+});
+
 test("archive rejects an invalid date without creating a play link", async () => {
     const elements = installFakeDocument(ARCHIVE_ELEMENT_IDS);
     elements["archive-content"].hidden = true;
@@ -346,5 +427,16 @@ test("daily, archive, and results pages load saved challenges before the resolve
 
         assert.ok(savedChallengesIndex >= 0, `${page} must load the saved challenge table`);
         assert.ok(generatorIndex > savedChallengesIndex, `${page} must load the table first`);
+    }
+});
+
+test("daily pages can render saved challenges without eagerly loading the full database", async () => {
+    for (const page of ["daily.html", "archive.html"]) {
+        const html = await readFile(new URL(`../${page}`, import.meta.url), "utf8");
+        assert.equal(
+            html.includes('<script src="./data/database.js'),
+            false,
+            `${page} should load the database only when an unsaved date needs generation`
+        );
     }
 });

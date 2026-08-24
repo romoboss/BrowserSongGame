@@ -27,9 +27,47 @@
         }
 
         const generator = globalThis.SongavelerDailyGenerator;
-        const database = globalThis.SONG_DATABASE;
         const today = generator?.getUtcDateKey?.() || new Date().toISOString().slice(0, 10);
         let bounds = null;
+        let challengeRequestNumber = 0;
+
+        async function loadDatabase() {
+            if (globalThis.SONG_DATABASE) return globalThis.SONG_DATABASE;
+            await Promise.all([
+                globalThis.SONG_ROUTE_DATABASE
+                    ? Promise.resolve()
+                    : import("../data/route-database.js?v=20260814T212403"),
+                globalThis.SONG_ROUTE_GRAPH
+                    ? Promise.resolve()
+                    : import("../data/route-graph.js?v=2026-08-14T21%3A24%3A03Z")
+            ]);
+
+            const routeDatabase = globalThis.SONG_ROUTE_DATABASE;
+            const routeGraph = globalThis.SONG_ROUTE_GRAPH;
+            if (
+                !routeDatabase
+                || !routeGraph
+                || routeDatabase.graphVersion !== routeGraph.version
+            ) {
+                throw new Error("The compact route database is unavailable.");
+            }
+            return { ...routeDatabase, adjacency: routeGraph.adjacency };
+        }
+
+        function getArtistName(database, artistId) {
+            const fullDatabaseName = database?.artists?.[artistId];
+            if (fullDatabaseName) return fullDatabaseName;
+            const record = database?.records?.find(row => String(row[0]) === String(artistId));
+            return record?.[1] || null;
+        }
+
+        function hasArtist(database, artistId) {
+            if (database?.artists) return Boolean(database.artists[artistId]);
+            if (database?.records) {
+                return database.records.some(row => String(row[0]) === String(artistId));
+            }
+            return true;
+        }
 
         function showError(message) {
             elements["archive-content"].hidden = true;
@@ -39,7 +77,8 @@
             elements["archive-play-link"].href = "";
         }
 
-        function showChallenge(dateKey) {
+        async function showChallenge(dateKey) {
+            const requestNumber = ++challengeRequestNumber;
             if (!generator) {
                 showError("The daily challenge generator could not be loaded.");
                 return;
@@ -65,12 +104,17 @@
             }
 
             let challenge;
+            let database = globalThis.SONG_DATABASE;
             try {
+                if (dateKey > bounds.lastSavedDate) database ||= await loadDatabase();
                 challenge = generator.resolveArchive(database, dateKey, today);
             } catch {
-                showError("The Daily Challenge archive could not be loaded.");
+                if (requestNumber === challengeRequestNumber) {
+                    showError("The Daily Challenge archive could not be loaded.");
+                }
                 return;
             }
+            if (requestNumber !== challengeRequestNumber) return;
 
             if (!challenge) {
                 showError(
@@ -80,13 +124,13 @@
                 return;
             }
 
-            const startName = challenge.startName || database?.artists?.[challenge.startId];
-            const endName = challenge.endName || database?.artists?.[challenge.endId];
+            const startName = challenge.startName || getArtistName(database, challenge.startId);
+            const endName = challenge.endName || getArtistName(database, challenge.endId);
             if (
                 !startName
                 || !endName
-                || !database?.artists?.[challenge.startId]
-                || !database?.artists?.[challenge.endId]
+                || !hasArtist(database, challenge.startId)
+                || !hasArtist(database, challenge.endId)
             ) {
                 showError("This archived challenge is no longer playable in the bundled database.");
                 return;
@@ -113,7 +157,7 @@
 
         elements["archive-form"].addEventListener("submit", event => {
             event.preventDefault();
-            showChallenge(elements["archive-date-input"].value);
+            return showChallenge(elements["archive-date-input"].value);
         });
 
         try {
@@ -133,7 +177,7 @@
         elements["archive-date-input"].min = bounds.firstDate;
         elements["archive-date-input"].max = bounds.maxArchiveDate;
         elements["archive-date-input"].value = bounds.maxArchiveDate;
-        showChallenge(bounds.maxArchiveDate);
+        void showChallenge(bounds.maxArchiveDate);
     }
 
     if (document.readyState === "loading") {

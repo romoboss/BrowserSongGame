@@ -1,7 +1,6 @@
 (() => {
     "use strict";
 
-    const database = globalThis.SONG_DATABASE;
     const generator = globalThis.SongavelerDailyGenerator;
     const progress = globalThis.SongavelerDailyProgress;
     const elementIds = [
@@ -81,7 +80,37 @@
         elements["daily-error-message"].textContent = message;
     }
 
-    function initialize() {
+    async function loadDatabase() {
+        if (globalThis.SONG_DATABASE) return globalThis.SONG_DATABASE;
+        await Promise.all([
+            globalThis.SONG_ROUTE_DATABASE
+                ? Promise.resolve()
+                : import("../data/route-database.js?v=20260814T212403"),
+            globalThis.SONG_ROUTE_GRAPH
+                ? Promise.resolve()
+                : import("../data/route-graph.js?v=2026-08-14T21%3A24%3A03Z")
+        ]);
+
+        const routeDatabase = globalThis.SONG_ROUTE_DATABASE;
+        const routeGraph = globalThis.SONG_ROUTE_GRAPH;
+        if (
+            !routeDatabase
+            || !routeGraph
+            || routeDatabase.graphVersion !== routeGraph.version
+        ) {
+            throw new Error("The compact route database is unavailable.");
+        }
+        return { ...routeDatabase, adjacency: routeGraph.adjacency };
+    }
+
+    function getArtistName(database, artistId) {
+        const fullDatabaseName = database?.artists?.[artistId];
+        if (fullDatabaseName) return fullDatabaseName;
+        const record = database?.records?.find(row => String(row[0]) === String(artistId));
+        return record?.[1] || null;
+    }
+
+    async function initialize() {
         if (!generator) {
             showError("The daily challenge generator could not be loaded.");
             return;
@@ -93,8 +122,13 @@
         renderProgress(dateKey);
 
         let challenge;
+        let database = globalThis.SONG_DATABASE;
         try {
-            challenge = generator.resolve(database, dateKey);
+            challenge = generator.getSaved?.(dateKey) || null;
+            if (!challenge) {
+                database ||= await loadDatabase();
+                challenge = generator.resolve(database, dateKey);
+            }
         } catch {
             showError("The Daily Challenge data could not be loaded.");
             return;
@@ -114,10 +148,15 @@
             daily: dateKey
         });
 
-        elements["daily-start-artist"].textContent =
-            challenge.startName || database.artists[challenge.startId];
-        elements["daily-end-artist"].textContent =
-            challenge.endName || database.artists[challenge.endId];
+        const startName = challenge.startName || getArtistName(database, challenge.startId);
+        const endName = challenge.endName || getArtistName(database, challenge.endId);
+        if (!startName || !endName) {
+            showError("The Daily Challenge artists could not be loaded.");
+            return;
+        }
+
+        elements["daily-start-artist"].textContent = startName;
+        elements["daily-end-artist"].textContent = endName;
         elements["daily-status"].textContent =
             "Today’s artists are 2 connections apart and each have at least 25 linked songs.";
         elements["daily-play-link"].href = `./game?${parameters}`;
@@ -133,5 +172,5 @@
         elements["daily-error-message"].textContent = "";
     }
 
-    initialize();
+    void initialize();
 })();

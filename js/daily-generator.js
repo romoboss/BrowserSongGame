@@ -5,6 +5,8 @@
     const REQUIRED_LINKED_SONGS = 25;
     const DAILY_CHALLENGES_FORMAT_VERSION = 1;
     const DATE_KEY_PATTERN = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
+    let cachedSavedTableReference;
+    let cachedSavedTableResult;
 
     function isValidDateKey(dateKey) {
         if (typeof dateKey !== "string" || !DATE_KEY_PATTERN.test(dateKey)) return false;
@@ -72,18 +74,21 @@
     }
 
     function assertDatabase(database) {
-        if (
-            !database
-            || typeof database.artists !== "object"
-            || typeof database.artistSongs !== "object"
-            || typeof database.songData !== "object"
-        ) {
+        const isFullDatabase = database
+            && typeof database.artists === "object"
+            && typeof database.artistSongs === "object"
+            && typeof database.songData === "object";
+        const isRouteDatabase = database
+            && Array.isArray(database.records)
+            && Array.isArray(database.adjacency);
+        if (!isFullDatabase && !isRouteDatabase) {
             throw new TypeError("A valid Songaveler database is required.");
         }
     }
 
     function getSavedTable() {
         const table = globalThis.SongavelerDailyChallenges;
+        if (table === cachedSavedTableReference) return cachedSavedTableResult;
         if (table == null) return null;
 
         if (
@@ -131,7 +136,9 @@
             expectedDate = shiftUtcDateKey(expectedDate, 1);
         }
 
-        return { table, dates };
+        cachedSavedTableReference = table;
+        cachedSavedTableResult = { table, dates };
+        return cachedSavedTableResult;
     }
 
     function getSaved(dateKey) {
@@ -166,7 +173,7 @@
         });
     }
 
-    function findArtistDistances(database, startId) {
+    function findArtistDistances(database, startId, routeRecordsById = null) {
         const startKey = String(startId);
         const distances = new Map([[startKey, 0]]);
         const queue = [startKey];
@@ -175,6 +182,17 @@
             const artistId = queue[queueIndex];
             const distance = distances.get(artistId);
             if (distance >= REQUIRED_CONNECTIONS) continue;
+
+            if (routeRecordsById) {
+                for (const nextArtistId of database.adjacency[Number(artistId)] || []) {
+                    const nextId = String(nextArtistId);
+                    if (distances.has(nextId)) continue;
+
+                    distances.set(nextId, distance + 1);
+                    if (routeRecordsById.get(nextId)?.[2] !== 1) queue.push(nextId);
+                }
+                continue;
+            }
 
             for (const songId of database.artistSongs[artistId] || []) {
                 for (const nextArtistId of database.songData[songId]?.artists || []) {
@@ -201,17 +219,29 @@
             throw new RangeError("The challenge date must be a real date in YYYY-MM-DD format.");
         }
 
-        const candidates = Object.keys(database.artists)
-            .filter(id => (
-                typeof database.artists[id] === "string"
-                && database.artists[id].length > 0
-                && (database.artistSongs[id] || []).length >= REQUIRED_LINKED_SONGS
-            ))
-            .sort(compareArtistIds);
+        const routeRecordsById = Array.isArray(database.records)
+            ? new Map(database.records.map(record => [String(record[0]), record]))
+            : null;
+        const candidates = routeRecordsById
+            ? database.records
+                .filter(record => (
+                    typeof record[1] === "string"
+                    && record[1].length > 0
+                    && record[2] >= REQUIRED_LINKED_SONGS
+                ))
+                .map(record => String(record[0]))
+                .sort(compareArtistIds)
+            : Object.keys(database.artists)
+                .filter(id => (
+                    typeof database.artists[id] === "string"
+                    && database.artists[id].length > 0
+                    && (database.artistSongs[id] || []).length >= REQUIRED_LINKED_SONGS
+                ))
+                .sort(compareArtistIds);
         const random = createSeededRandom(dateKey);
 
         for (const startId of shuffle(candidates, random)) {
-            const distances = findArtistDistances(database, startId);
+            const distances = findArtistDistances(database, startId, routeRecordsById);
             const possibleEnds = candidates.filter(endId => (
                 endId !== startId
                 && distances.get(endId) === REQUIRED_CONNECTIONS

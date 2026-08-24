@@ -8,11 +8,14 @@
     <title>Choose a Songaveler Challenge</title>
     <link rel="icon" href="./assets/icon.png" type="image/png" sizes="150x150">
     <link rel="apple-touch-icon" href="./assets/icon.png">
-    <script src="./js/settings.js?v=appearance-16"></script>
-    <script src="./js/navigation.js?v=nav-5" defer></script>
+    <script src="./js/settings-bootstrap.js?v=bootstrap-1"></script>
+    <script src="./js/settings.js?v=appearance-17" defer></script>
+    <script src="./js/navigation.js?v=nav-6" defer></script>
     <link rel="stylesheet" href="./css/styles.css?v=appearance-10">
-    <link rel="stylesheet" href="./css/theme.css?v=paper-17">
-    <link rel="stylesheet" href="./css/site.css?v=site-5">
+    <link rel="stylesheet" href="./css/theme.css?v=paper-19">
+    <link rel="stylesheet" href="./css/site.css?v=site-6">
+    <script src="./data/route-database.js?v=20260814T212403" defer></script>
+    <script src="./js/setup.js?v=flow-10" defer></script>
 </head>
 
 <body class="setup-page" data-page="route-picker">
@@ -45,7 +48,7 @@
                         <label for="start-input"><span>01</span> Start artist</label>
                         <div class="autocomplete">
                             <div class="search-box">
-                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="" width="192" height="192">
                                 <input id="start-input" type="search" placeholder="Search artists" autocomplete="off"
                                     role="combobox" aria-autocomplete="list" aria-controls="start-suggestions"
                                     aria-expanded="false">
@@ -55,15 +58,16 @@
                         <small>Your first artist in the route.</small>
                     </div>
 
-                    <div class="picker-link" aria-hidden="true">
-                        <img src="./assets/arrow.png" alt="">
-                    </div>
+                    <button id="swap-artists" class="picker-link" type="button" disabled
+                        aria-label="Swap start and target artists" title="Swap start and target artists">
+                        <img src="./assets/arrow.png" alt="" width="192" height="192">
+                    </button>
 
                     <div class="picker-field">
                         <label for="end-input"><span>02</span> End artist</label>
                         <div class="autocomplete">
                             <div class="search-box">
-                                <img class="search-icon" src="./assets/magnifier.png" alt="">
+                                <img class="search-icon" src="./assets/magnifier.png" alt="" width="192" height="192">
                                 <input id="end-input" type="search" placeholder="Search artists" autocomplete="off"
                                     role="combobox" aria-autocomplete="list" aria-controls="end-suggestions"
                                     aria-expanded="false">
@@ -93,8 +97,6 @@
         </div>
     </main>
 
-    <script src="./data/database.js?v=20260715T200355"></script>
-    <script src="./js/setup.js?v=flow-8"></script>
 </body>
 
 </html>
