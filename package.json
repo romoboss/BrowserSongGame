@@ -7,7 +7,7 @@
   "scripts": {
     "build:database": "node tools/build-database.js",
     "test:route": "node tools/print-shortest-route.js",
-    "test": "node --test test/setup.test.js test/setup-route-data.test.js test/setup-lazy-graph.test.js test/route-database.test.js test/share-fallback.test.js test/game-flow.test.js test/target-dead-end.test.js test/results.test.js test/settings-bootstrap.test.js test/settings.test.js test/settings-clean-load.test.js test/theme-buttons.test.js test/navigation.test.js test/daily.test.js test/daily-progress.test.js test/daily-results.test.js test/archive.test.js test/update-daily-challenges.test.js test/privacy.test.js test/shortest-route.test.js"
+    "test": "node --test test/setup.test.js test/setup-route-data.test.js test/setup-lazy-graph.test.js test/route-database.test.js test/share-fallback.test.js test/game-flow.test.js test/target-dead-end.test.js test/results.test.js test/settings-bootstrap.test.js test/settings.test.js test/settings-clean-load.test.js test/theme-buttons.test.js test/navigation.test.js test/daily.test.js test/daily-progress.test.js test/daily-results.test.js test/archive.test.js test/update-daily-challenges.test.js test/privacy.test.js test/crawler-files.test.js test/shortest-route.test.js"
   },
   "dependencies": {
     "oslllo-potrace": "^5.0.0"
