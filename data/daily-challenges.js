@@ -209,6 +209,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-26": Object.freeze({
+            startId: "665",
+            endId: "838",
+            startName: "Camila Cabello",
+            endName: "Tove Lo",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
         })
     })
 });
