@@ -218,6 +218,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-27": Object.freeze({
+            startId: "437",
+            endId: "852",
+            startName: "Lil Yachty",
+            endName: "Lil Peep",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
         })
     })
 });
