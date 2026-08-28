@@ -227,6 +227,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-28": Object.freeze({
+            startId: "157",
+            endId: "82",
+            startName: "PinkPantheress",
+            endName: "2 Chainz",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
         })
     })
 });
