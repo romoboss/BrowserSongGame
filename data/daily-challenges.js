@@ -236,6 +236,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-29": Object.freeze({
+            startId: "18",
+            endId: "355",
+            startName: "Lana Del Rey",
+            endName: "Major Lazer",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
         })
     })
 });
