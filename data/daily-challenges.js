@@ -245,6 +245,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-14T21:24:03Z"
+        }),
+        "2026-08-30": Object.freeze({
+            startId: "39",
+            endId: "642",
+            startName: "Big Sean",
+            endName: "DaBaby",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-29T20:47:38Z"
         })
     })
 });
