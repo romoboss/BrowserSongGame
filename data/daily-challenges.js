@@ -263,6 +263,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-29T20:47:38Z"
+        }),
+        "2026-09-01": Object.freeze({
+            startId: "112",
+            endId: "265",
+            startName: "Taylor Swift",
+            endName: "Metro Boomin",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
         })
     })
 });
