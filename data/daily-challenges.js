@@ -281,6 +281,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
+        }),
+        "2026-09-03": Object.freeze({
+            startId: "150",
+            endId: "41",
+            startName: "Flo Rida",
+            endName: "Childish Gambino",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
         })
     })
 });
