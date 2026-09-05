@@ -299,6 +299,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
+        }),
+        "2026-09-05": Object.freeze({
+            startId: "1054",
+            endId: "101",
+            startName: "David Bowie",
+            endName: "Chris Brown",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
         })
     })
 });
