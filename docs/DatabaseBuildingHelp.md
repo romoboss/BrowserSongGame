@@ -197,6 +197,9 @@ A summary of every queue run is also recorded in `generator/reports/last_request
 # Recreate website JSON without contacting either API
 python generator/database_generator.py export
 
+# Remove one or more unnecessary credits using IDs from the review report
+python generator/database_generator.py remove-credits SONG_ID ARTIST_ID [ARTIST_ID ...]
+
 # Check SQLite integrity, foreign keys, and graph validity
 python generator/database_generator.py validate
 
@@ -218,6 +221,15 @@ python generator/database_generator.py dedupe --apply --pretty
 # Refresh metadata for already stored recordings during an artist import
 python generator/database_generator.py add-artist ARTIST_MBID --refresh-existing
 ```
+
+Every export also refreshes `generator/reports/songs_with_many_artists.json`. This
+review list contains every song with more than three credited artists, including
+the internal song and artist IDs, MusicBrainz IDs, names, and alternate recording
+IDs. Songs with exactly three artists are not flagged. Use the stable IDs in this
+report when deciding which credits are unnecessary, then run `remove-credits`
+with the song ID followed by one or more artist IDs. The command
+refuses to leave a song with fewer than two artists and automatically refreshes
+both the website data and the review list.
 
 Internal integer IDs are assigned by SQLite and are stable as long as `generator/music_graph.db` is preserved. Do not delete that file when updating the database.
 

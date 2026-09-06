@@ -116,6 +116,114 @@ class GeneratorTests(unittest.TestCase):
             finally:
                 database.close()
 
+    def test_export_lists_songs_with_more_than_three_artists_for_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            settings = self.make_settings(root)
+            database = GraphDatabase(settings.database_path)
+            try:
+                artist_ids = [
+                    database.upsert_artist(
+                        f"00000000-0000-4000-8000-{index:012d}", f"Artist {index}"
+                    )
+                    for index in range(1, 5)
+                ]
+                three_artist_song = database.upsert_song(
+                    "11111111-1111-4111-8111-111111111111", "Three Artists"
+                )
+                review_song = database.upsert_song(
+                    "22222222-2222-4222-8222-222222222222", "Four Artists"
+                )
+                database.replace_song_artists(three_artist_song, artist_ids[:3])
+                database.replace_song_artists(review_song, artist_ids)
+                database.commit()
+
+                summary = database.export_json(settings)
+                report = json.loads(
+                    (
+                        settings.reports_path / "songs_with_many_artists.json"
+                    ).read_text(encoding="utf-8")
+                )
+
+                self.assertEqual(summary["songsNeedingCreditReview"], 1)
+                self.assertEqual(report["artistThreshold"], 3)
+                self.assertEqual(report["songCount"], 1)
+                self.assertEqual(
+                    report["songs"],
+                    [
+                        {
+                            "songId": review_song,
+                            "name": "Four Artists",
+                            "artistCount": 4,
+                            "primaryRecordingMbid": "22222222-2222-4222-8222-222222222222",
+                            "recordingMbids": [
+                                "22222222-2222-4222-8222-222222222222"
+                            ],
+                            "artists": [
+                                {
+                                    "artistId": artist_id,
+                                    "mbid": f"00000000-0000-4000-8000-{index:012d}",
+                                    "name": f"Artist {index}",
+                                }
+                                for index, artist_id in enumerate(artist_ids, start=1)
+                            ],
+                        }
+                    ],
+                )
+
+                database.replace_song_artists(review_song, artist_ids[:3])
+                database.commit()
+                database.export_json(settings)
+                refreshed_report = json.loads(
+                    (
+                        settings.reports_path / "songs_with_many_artists.json"
+                    ).read_text(encoding="utf-8")
+                )
+                self.assertEqual(refreshed_report["songCount"], 0)
+                self.assertEqual(refreshed_report["songs"], [])
+            finally:
+                database.close()
+
+    def test_remove_song_artist_credits_keeps_at_least_two_artists(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            settings = self.make_settings(Path(temp))
+            database = GraphDatabase(settings.database_path)
+            try:
+                artist_ids = [
+                    database.upsert_artist(
+                        f"00000000-0000-4000-8000-{index:012d}", f"Artist {index}"
+                    )
+                    for index in range(1, 5)
+                ]
+                song_id = database.upsert_song(
+                    "22222222-2222-4222-8222-222222222222", "Four Artists"
+                )
+                database.replace_song_artists(song_id, artist_ids)
+                database.commit()
+
+                result = database.remove_song_artist_credits(
+                    song_id, [artist_ids[1], artist_ids[3]]
+                )
+
+                self.assertEqual(
+                    [artist["artistId"] for artist in result["removedArtists"]],
+                    [artist_ids[1], artist_ids[3]],
+                )
+                self.assertEqual(
+                    database._song_artist_ids(song_id),
+                    [artist_ids[0], artist_ids[2]],
+                )
+                with self.assertRaisesRegex(
+                    MODULE.GeneratorError, "must retain at least two artists"
+                ):
+                    database.remove_song_artist_credits(song_id, [artist_ids[0]])
+                self.assertEqual(
+                    database._song_artist_ids(song_id),
+                    [artist_ids[0], artist_ids[2]],
+                )
+            finally:
+                database.close()
+
     def test_build_checkpoint_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "build_checkpoint.json"

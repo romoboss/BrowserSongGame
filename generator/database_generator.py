@@ -10,6 +10,7 @@ This reads generator/config.json, updates generator/music_graph.db, and exports:
     output/songs.json
     output/artistSongs.json
     output/manifest.json
+    generator/reports/songs_with_many_artists.json
 
 Other useful commands:
     python generator/database_generator.py resume
@@ -19,6 +20,7 @@ Other useful commands:
     python generator/database_generator.py fill-minimum
     python generator/database_generator.py process-requests
     python generator/database_generator.py export
+    python generator/database_generator.py remove-credits <song ID> <artist ID> [<artist ID> ...]
     python generator/database_generator.py validate
     python generator/database_generator.py stats
 """
@@ -76,6 +78,8 @@ UUID_RE = re.compile(
 ARTIST_TRACK_TERMINAL_STATUSES = frozenset(
     {"existing", "imported", "solo", "wrong_artist", "unresolved"}
 )
+ARTIST_CREDIT_REVIEW_THRESHOLD = 3
+ARTIST_CREDIT_REVIEW_REPORT = "songs_with_many_artists.json"
 
 
 class GeneratorError(RuntimeError):
@@ -632,11 +636,11 @@ class ApiClient:
                 except ValueError:
                     delay = float(min(2**attempt, 30))
                 delay = max(delay, 1.0)
-                print(
-                    f"HTTP {response.status_code} from {response.url}; "
-                    f"retrying in {delay:g} seconds ({attempt}/{attempts})...",
-                    file=sys.stderr,
-                )
+                #print(
+                #    f"HTTP {response.status_code} from {response.url}; "
+                #    f"retrying in {delay:g} seconds ({attempt}/{attempts})...",
+                #    file=sys.stderr,
+                #)
                 time.sleep(delay)
                 continue
 
@@ -1504,6 +1508,133 @@ class GraphDatabase:
             "songArtistLinks": link_count,
         }
 
+    def find_songs_with_many_artists(
+        self, artist_threshold: int = ARTIST_CREDIT_REVIEW_THRESHOLD
+    ) -> list[dict[str, Any]]:
+        """Return songs whose credit count is above the manual-review threshold."""
+
+        songs: list[dict[str, Any]] = []
+        rows = self.connection.execute(
+            """
+            SELECT
+                s.id AS song_id,
+                s.mbid AS primary_recording_mbid,
+                s.name AS song_name,
+                a.id AS artist_id,
+                a.mbid AS artist_mbid,
+                a.name AS artist_name,
+                sa.credit_order,
+                credit_counts.artist_count
+            FROM songs s
+            JOIN (
+                SELECT song_id, COUNT(*) AS artist_count
+                FROM song_artists
+                GROUP BY song_id
+                HAVING COUNT(*) > ?
+            ) credit_counts ON credit_counts.song_id = s.id
+            JOIN song_artists sa ON sa.song_id = s.id
+            JOIN artists a ON a.id = sa.artist_id
+            ORDER BY credit_counts.artist_count DESC, s.id, sa.credit_order
+            """,
+            (artist_threshold,),
+        )
+
+        current_song_id: int | None = None
+        for row in rows:
+            song_id = int(row["song_id"])
+            if song_id != current_song_id:
+                recording_mbids = [
+                    str(recording["recording_mbid"])
+                    for recording in self.connection.execute(
+                        """
+                        SELECT recording_mbid
+                        FROM song_recordings
+                        WHERE song_id = ?
+                        ORDER BY is_primary DESC, recording_mbid
+                        """,
+                        (song_id,),
+                    )
+                ]
+                songs.append(
+                    {
+                        "songId": song_id,
+                        "name": str(row["song_name"]),
+                        "artistCount": int(row["artist_count"]),
+                        "primaryRecordingMbid": str(row["primary_recording_mbid"]),
+                        "recordingMbids": recording_mbids,
+                        "artists": [],
+                    }
+                )
+                current_song_id = song_id
+
+            songs[-1]["artists"].append(
+                {
+                    "artistId": int(row["artist_id"]),
+                    "mbid": str(row["artist_mbid"]),
+                    "name": str(row["artist_name"]),
+                }
+            )
+
+        return songs
+
+    def remove_song_artist_credits(
+        self, song_id: int, artist_ids: Sequence[int]
+    ) -> dict[str, Any]:
+        """Remove selected credits while preserving the game's two-artist invariant."""
+
+        song_row = self.connection.execute(
+            "SELECT name FROM songs WHERE id = ?", (song_id,)
+        ).fetchone()
+        if song_row is None:
+            raise GeneratorError(f"Song ID {song_id} does not exist")
+
+        requested_artist_ids = list(dict.fromkeys(artist_ids))
+        current_artist_ids = self._song_artist_ids(song_id)
+        missing_artist_ids = [
+            artist_id
+            for artist_id in requested_artist_ids
+            if artist_id not in current_artist_ids
+        ]
+        if missing_artist_ids:
+            missing = ", ".join(str(artist_id) for artist_id in missing_artist_ids)
+            raise GeneratorError(
+                f"Song ID {song_id} does not credit artist ID(s): {missing}"
+            )
+
+        removed_artist_id_set = set(requested_artist_ids)
+        remaining_artist_ids = [
+            artist_id
+            for artist_id in current_artist_ids
+            if artist_id not in removed_artist_id_set
+        ]
+        if len(remaining_artist_ids) < 2:
+            raise GeneratorError(
+                f"Cannot remove those credits from song ID {song_id}: "
+                "every stored song must retain at least two artists"
+            )
+
+        artist_names = {
+            int(row["id"]): str(row["name"])
+            for row in self.connection.execute(
+                f"SELECT id, name FROM artists WHERE id IN "
+                f"({','.join('?' for _ in current_artist_ids)})",
+                current_artist_ids,
+            )
+        }
+        self.replace_song_artists(song_id, remaining_artist_ids)
+        return {
+            "songId": song_id,
+            "name": str(song_row["name"]),
+            "removedArtists": [
+                {"artistId": artist_id, "name": artist_names[artist_id]}
+                for artist_id in requested_artist_ids
+            ],
+            "remainingArtists": [
+                {"artistId": artist_id, "name": artist_names[artist_id]}
+                for artist_id in remaining_artist_ids
+            ],
+        }
+
     def validate(self) -> tuple[list[str], list[str]]:
         errors: list[str] = []
         warnings: list[str] = []
@@ -1676,10 +1807,23 @@ class GraphDatabase:
         for filename, payload in payloads.items():
             write_json(output_dir / filename, payload, pretty=pretty)
 
+        review_songs = self.find_songs_with_many_artists()
+        write_json(
+            settings.reports_path / ARTIST_CREDIT_REVIEW_REPORT,
+            {
+                "generatedAt": manifest["generatedAt"],
+                "artistThreshold": ARTIST_CREDIT_REVIEW_THRESHOLD,
+                "songCount": len(review_songs),
+                "songs": review_songs,
+            },
+            pretty=True,
+        )
+
         return {
             "artists": len(artists),
             "songs": len(songs),
             "songArtistLinks": link_count,
+            "songsNeedingCreditReview": len(review_songs),
         }
 
 
@@ -3274,6 +3418,19 @@ def create_parser() -> argparse.ArgumentParser:
     export = subparsers.add_parser("export", help="Regenerate static JSON from SQLite")
     export.add_argument("--pretty", action="store_true")
 
+    remove_credits = subparsers.add_parser(
+        "remove-credits",
+        help="Remove artist credits using song and artist IDs from the review report",
+    )
+    remove_credits.add_argument("song_id", type=int, help="Internal song ID")
+    remove_credits.add_argument(
+        "artist_ids",
+        type=int,
+        nargs="+",
+        help="One or more internal artist IDs to remove",
+    )
+    remove_credits.add_argument("--pretty", action="store_true")
+
     dedupe = subparsers.add_parser(
         "dedupe",
         help="Find duplicate songs by title and credited artists",
@@ -3621,6 +3778,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                     settings, pretty_override=True if args.pretty else None
                 )
                 print_export_summary(summary, settings.output_path)
+
+            elif command == "remove-credits":
+                result = database.remove_song_artist_credits(
+                    args.song_id, args.artist_ids
+                )
+                database.commit()
+                print(json.dumps(result, indent=2, ensure_ascii=False))
+                export_summary = database.export_json(
+                    settings, pretty_override=True if args.pretty else None
+                )
+                print_export_summary(export_summary, settings.output_path)
 
             elif command == "dedupe":
                 duplicate_groups = database.find_duplicate_song_groups()
