@@ -317,6 +317,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-08-31T19:37:21Z"
+        }),
+        "2026-09-07": Object.freeze({
+            startId: "704",
+            endId: "20",
+            startName: "Estelle",
+            endName: "Madonna",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-09-06T19:02:34Z"
         })
     })
 });
