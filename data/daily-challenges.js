@@ -326,6 +326,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-09-06T19:02:34Z"
+        }),
+        "2026-09-08": Object.freeze({
+            startId: "25",
+            endId: "313",
+            startName: "J. Cole",
+            endName: "Tinashe",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-09-06T19:02:34Z"
         })
     })
 });
