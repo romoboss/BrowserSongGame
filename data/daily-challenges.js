@@ -335,6 +335,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 25,
             sourceDatabaseGeneratedAt: "2026-09-06T19:02:34Z"
+        }),
+        "2026-09-09": Object.freeze({
+            startId: "2280",
+            endId: "370",
+            startName: "John Lennon",
+            endName: "Stevie Wonder",
+            requiredConnections: 2,
+            requiredLinkedSongs: 25,
+            sourceDatabaseGeneratedAt: "2026-09-06T19:02:34Z"
         })
     })
 });
