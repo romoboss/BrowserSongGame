@@ -2,7 +2,7 @@
     const storageKey = "music-link-sidebar-state";
     const mobileBreakpoint = 760;
     const mobileMediaQuery = `(max-width: ${mobileBreakpoint}px)`;
-    const websiteVersion = "1.1.0";
+    const websiteVersion = "1.2.0";
     const navigationItems = [
         { page: "home", label: "Home", href: "./" },
         { page: "route-picker", label: "Route Picker", href: "./route-picker" },

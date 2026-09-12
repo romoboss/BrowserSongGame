@@ -8,8 +8,8 @@ const toolsDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.resolve(toolsDirectory, "..");
 const DATE_KEY_PATTERN = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
 const EXPECTED_FORMAT_VERSION = 1;
-const REQUIRED_CONNECTIONS = 2;
-const REQUIRED_LINKED_SONGS = 25;
+const REQUIRED_CONNECTIONS_MIN = 1;
+const REQUIRED_CONNECTIONS_MAX = 3;
 
 export function isValidDateKey(dateKey) {
     if (typeof dateKey !== "string" || !DATE_KEY_PATTERN.test(dateKey)) return false;
@@ -64,8 +64,11 @@ function validateEntry(entry, dateKey, database) {
         || entry.startName.length === 0
         || typeof entry.endName !== "string"
         || entry.endName.length === 0
-        || entry.requiredConnections !== REQUIRED_CONNECTIONS
-        || entry.requiredLinkedSongs !== REQUIRED_LINKED_SONGS
+        || !Number.isInteger(entry.requiredConnections)
+        || entry.requiredConnections < REQUIRED_CONNECTIONS_MIN
+        || entry.requiredConnections > REQUIRED_CONNECTIONS_MAX
+        || !Number.isInteger(entry.requiredLinkedSongs)
+        || entry.requiredLinkedSongs < 1
         || typeof entry.sourceDatabaseGeneratedAt !== "string"
         || entry.sourceDatabaseGeneratedAt.length === 0
     ) {

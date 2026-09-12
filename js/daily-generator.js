@@ -1,8 +1,10 @@
 (() => {
     "use strict";
 
-    const REQUIRED_CONNECTIONS = 2;
-    const REQUIRED_LINKED_SONGS = 25;
+    const REQUIRED_CONNECTIONS_MIN = 1;
+    const REQUIRED_CONNECTIONS_MAX = 3;
+    const REQUIRED_LINKED_SONGS = 50;
+    const MIN_COLLABORATORS_TO_SONGS_RATIO = 0.15;
     const DAILY_CHALLENGES_FORMAT_VERSION = 1;
     const DATE_KEY_PATTERN = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/;
     let cachedSavedTableReference;
@@ -126,8 +128,11 @@
                 || challenge.startName.length === 0
                 || typeof challenge.endName !== "string"
                 || challenge.endName.length === 0
-                || challenge.requiredConnections !== REQUIRED_CONNECTIONS
-                || challenge.requiredLinkedSongs !== REQUIRED_LINKED_SONGS
+                || !Number.isInteger(challenge.requiredConnections)
+                || challenge.requiredConnections < REQUIRED_CONNECTIONS_MIN
+                || challenge.requiredConnections > REQUIRED_CONNECTIONS_MAX
+                || !Number.isInteger(challenge.requiredLinkedSongs)
+                || challenge.requiredLinkedSongs < 1
                 || typeof challenge.sourceDatabaseGeneratedAt !== "string"
                 || challenge.sourceDatabaseGeneratedAt.length === 0
             ) {
@@ -173,7 +178,12 @@
         });
     }
 
-    function findArtistDistances(database, startId, routeRecordsById = null) {
+    function findArtistDistances(
+        database,
+        startId,
+        maximumDistance,
+        routeRecordsById = null
+    ) {
         const startKey = String(startId);
         const distances = new Map([[startKey, 0]]);
         const queue = [startKey];
@@ -181,7 +191,7 @@
         for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
             const artistId = queue[queueIndex];
             const distance = distances.get(artistId);
-            if (distance >= REQUIRED_CONNECTIONS) continue;
+            if (distance >= maximumDistance) continue;
 
             if (routeRecordsById) {
                 for (const nextArtistId of database.adjacency[Number(artistId)] || []) {
@@ -212,6 +222,39 @@
         return distances;
     }
 
+    function getCollaboratorCount(database, artistId, routeRecordsById) {
+        if (routeRecordsById) {
+            return (database.adjacency[Number(artistId)] || []).length;
+        }
+
+        const collaborators = new Set();
+        for (const songId of database.artistSongs[artistId] || []) {
+            for (const nextArtistId of database.songData[songId]?.artists || []) {
+                const nextId = String(nextArtistId);
+                if (nextId !== artistId) collaborators.add(nextId);
+            }
+        }
+        return collaborators.size;
+    }
+
+    function getCandidatePools(database, candidates, routeRecordsById) {
+        const preferredCandidates = candidates.filter(artistId => {
+            const songCount = routeRecordsById
+                ? Number(routeRecordsById.get(artistId)?.[2])
+                : (database.artistSongs[artistId] || []).length;
+            const collaboratorCount = getCollaboratorCount(
+                database,
+                artistId,
+                routeRecordsById
+            );
+            return collaboratorCount / songCount > MIN_COLLABORATORS_TO_SONGS_RATIO;
+        });
+
+        return preferredCandidates.length > 0 && preferredCandidates.length < candidates.length
+            ? [preferredCandidates, candidates]
+            : [candidates];
+    }
+
     function generate(database, dateKey) {
         assertDatabase(database);
 
@@ -238,24 +281,58 @@
                     && (database.artistSongs[id] || []).length >= REQUIRED_LINKED_SONGS
                 ))
                 .sort(compareArtistIds);
-        const random = createSeededRandom(dateKey);
+        const connectionCounts = Array.from(
+            { length: REQUIRED_CONNECTIONS_MAX - REQUIRED_CONNECTIONS_MIN + 1 },
+            (_, index) => REQUIRED_CONNECTIONS_MIN + index
+        );
+        const connectionOrder = shuffle(
+            connectionCounts,
+            createSeededRandom(`${dateKey}:connection-count`)
+        );
+        const candidatePools = getCandidatePools(database, candidates, routeRecordsById);
 
-        for (const startId of shuffle(candidates, random)) {
-            const distances = findArtistDistances(database, startId, routeRecordsById);
-            const possibleEnds = candidates.filter(endId => (
-                endId !== startId
-                && distances.get(endId) === REQUIRED_CONNECTIONS
-            ));
+        for (const requiredConnections of connectionOrder) {
+            for (const [poolIndex, candidatePool] of candidatePools.entries()) {
+                const random = createSeededRandom(
+                    `${dateKey}:${requiredConnections}:candidate-pool-${poolIndex}`
+                );
+                for (const startId of shuffle(candidatePool, random)) {
+                    const distances = findArtistDistances(
+                        database,
+                        startId,
+                        requiredConnections,
+                        routeRecordsById
+                    );
+                    const possibleEnds = candidatePool.filter(endId => (
+                        endId !== startId
+                        && distances.get(endId) === requiredConnections
+                    ));
 
-            if (possibleEnds.length > 0) {
-                const endId = possibleEnds[Math.floor(random() * possibleEnds.length)];
-                return Object.freeze({
-                    dateKey,
-                    startId,
-                    endId,
-                    requiredConnections: REQUIRED_CONNECTIONS,
-                    requiredLinkedSongs: REQUIRED_LINKED_SONGS
-                });
+                    if (possibleEnds.length > 0) {
+                        const endId = possibleEnds[Math.floor(random() * possibleEnds.length)];
+                        const startCollaboratorCount = getCollaboratorCount(
+                            database,
+                            startId,
+                            routeRecordsById
+                        );
+                        const endCollaboratorCount = getCollaboratorCount(
+                            database,
+                            endId,
+                            routeRecordsById
+                        );
+                        const [challengeStartId, challengeEndId] = startCollaboratorCount
+                            > endCollaboratorCount
+                            ? [endId, startId]
+                            : [startId, endId];
+                        return Object.freeze({
+                            dateKey,
+                            startId: challengeStartId,
+                            endId: challengeEndId,
+                            requiredConnections,
+                            requiredLinkedSongs: REQUIRED_LINKED_SONGS
+                        });
+                    }
+                }
             }
         }
 
@@ -288,8 +365,10 @@
 
     globalThis.SongavelerDailyGenerator = Object.freeze({
         DAILY_CHALLENGES_FORMAT_VERSION,
-        REQUIRED_CONNECTIONS,
+        REQUIRED_CONNECTIONS_MIN,
+        REQUIRED_CONNECTIONS_MAX,
         REQUIRED_LINKED_SONGS,
+        MIN_COLLABORATORS_TO_SONGS_RATIO,
         generate,
         getBounds,
         getSaved,

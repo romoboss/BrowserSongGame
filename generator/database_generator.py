@@ -16,6 +16,7 @@ Other useful commands:
     python generator/database_generator.py resume
     python generator/database_generator.py add-artist <artist MBID or URL>
     python generator/database_generator.py add-song <recording MBID or URL>
+    python generator/database_generator.py add-remix <recording MBID or URL> <remixer MBID or URL> [...]
     python generator/database_generator.py constant-grow
     python generator/database_generator.py fill-minimum
     python generator/database_generator.py process-requests
@@ -2107,9 +2108,15 @@ def import_recording(
     recording_mbid: str,
     *,
     expected_artist_mbid: str | None = None,
+    additional_credits: Sequence[ArtistCredit] = (),
 ) -> tuple[int, str, list[ArtistCredit]]:
     recording = api.get_recording(recording_mbid)
     credits = parse_artist_credits(recording)
+    credited_mbids = {credit.mbid for credit in credits}
+    for credit in additional_credits:
+        if credit.mbid not in credited_mbids:
+            credits.append(credit)
+            credited_mbids.add(credit.mbid)
 
     if len(credits) < 2:
         raise GeneratorError(
@@ -3289,6 +3296,52 @@ def add_song_by_mbid(
         raise
 
 
+def add_remix_by_mbid(
+    api: ApiClient,
+    database: GraphDatabase,
+    recording_mbid: str,
+    remixer_mbids: Sequence[str],
+) -> dict[str, Any]:
+    """Add a remix recording and its MusicBrainz relationship-based remixers."""
+
+    remixers: list[ArtistCredit] = []
+    seen_remixer_mbids: set[str] = set()
+    for remixer_mbid in remixer_mbids:
+        if remixer_mbid in seen_remixer_mbids:
+            continue
+        artist = api.get_artist(remixer_mbid)
+        artist_name = str(artist.get("name") or "").strip()
+        if not artist_name:
+            raise ApiError(f"MusicBrainz artist {remixer_mbid} has no name")
+        remixers.append(ArtistCredit(mbid=remixer_mbid, name=artist_name))
+        seen_remixer_mbids.add(remixer_mbid)
+
+    print(f"Importing remix recording {recording_mbid}...")
+    import_id = database.begin_import("remix_recording", recording_mbid)
+    try:
+        song_id, song_name, credits = import_recording(
+            api,
+            database,
+            recording_mbid,
+            additional_credits=remixers,
+        )
+        result = {
+            "songId": song_id,
+            "songName": song_name,
+            "artists": [
+                {"mbid": credit.mbid, "name": credit.name} for credit in credits
+            ],
+            "relationshipBasedRemixers": [
+                {"mbid": credit.mbid, "name": credit.name} for credit in remixers
+            ],
+        }
+        database.finish_import(import_id, "completed", result)
+        return result
+    except Exception as exc:
+        database.finish_import(import_id, "failed", {"error": str(exc)})
+        raise
+
+
 def print_export_summary(summary: dict[str, int], output_path: Path) -> None:
     print(
         f"Exported {summary['artists']} artists, {summary['songs']} songs, and "
@@ -3333,6 +3386,18 @@ def create_parser() -> argparse.ArgumentParser:
     )
     add_song.add_argument("recording", help="MusicBrainz recording MBID or URL")
     add_song.add_argument("--pretty", action="store_true")
+
+    add_remix = subparsers.add_parser(
+        "add-remix",
+        help="Add a remix recording and its remixer relationship credits",
+    )
+    add_remix.add_argument("recording", help="MusicBrainz recording MBID or URL")
+    add_remix.add_argument(
+        "remixers",
+        nargs="+",
+        help="One or more remixer MusicBrainz artist MBIDs or URLs",
+    )
+    add_remix.add_argument("--pretty", action="store_true")
 
     fill_minimum = subparsers.add_parser(
         "fill-minimum",
@@ -3455,6 +3520,7 @@ def command_needs_api(command: str) -> bool:
         "resume",
         "add-artist",
         "add-song",
+        "add-remix",
         "constant-grow",
         "fill-minimum",
         "process-requests",
@@ -3588,6 +3654,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 assert api is not None
                 recording_mbid = extract_mbid(args.recording, "recording")
                 result = add_song_by_mbid(api, database, recording_mbid)
+                print(json.dumps(result, indent=2, ensure_ascii=False))
+                export_summary = database.export_json(
+                    settings, pretty_override=True if args.pretty else None
+                )
+                print_export_summary(export_summary, settings.output_path)
+
+            elif command == "add-remix":
+                assert api is not None
+                recording_mbid = extract_mbid(args.recording, "recording")
+                remixer_mbids = [
+                    extract_mbid(remixer, "artist") for remixer in args.remixers
+                ]
+                result = add_remix_by_mbid(
+                    api, database, recording_mbid, remixer_mbids
+                )
                 print(json.dumps(result, indent=2, ensure_ascii=False))
                 export_summary = database.export_json(
                     settings, pretty_override=True if args.pretty else None

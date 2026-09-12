@@ -200,6 +200,9 @@ python generator/database_generator.py export
 # Remove one or more unnecessary credits using IDs from the review report
 python generator/database_generator.py remove-credits SONG_ID ARTIST_ID [ARTIST_ID ...]
 
+# Add an official remix whose remixer is a MusicBrainz relationship, not a track artist
+python generator/database_generator.py add-remix RECORDING_MBID REMIXER_ARTIST_MBID [REMIXER_ARTIST_MBID ...]
+
 # Check SQLite integrity, foreign keys, and graph validity
 python generator/database_generator.py validate
 
@@ -230,6 +233,11 @@ report when deciding which credits are unnecessary, then run `remove-credits`
 with the song ID followed by one or more artist IDs. The command
 refuses to leave a song with fewer than two artists and automatically refreshes
 both the website data and the review list.
+
+Use `add-remix` for an official remix where MusicBrainz records the remixer as a
+relationship rather than a recording artist credit. The command preserves the
+original artist credits, adds the named relationship-based remixer(s) as game
+links, and records that distinction in import history.
 
 Internal integer IDs are assigned by SQLite and are stable as long as `generator/music_graph.db` is preserved. Do not delete that file when updating the database.
 

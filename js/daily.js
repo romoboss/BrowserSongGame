@@ -136,7 +136,7 @@
 
         if (!challenge) {
             showError(
-                "No daily challenge with 2 connections and at least 25 linked songs "
+                "No daily challenge "
                 + "per artist could be generated."
             );
             return;
@@ -157,8 +157,11 @@
 
         elements["daily-start-artist"].textContent = startName;
         elements["daily-end-artist"].textContent = endName;
+        const connectionLabel = challenge.requiredConnections === 1
+            ? "connection"
+            : "connections";
         elements["daily-status"].textContent =
-            "Today’s artists are 2 connections apart and each have at least 25 linked songs.";
+            `Today’s artists are ${challenge.requiredConnections} ${connectionLabel} apart.`;
         elements["daily-play-link"].href = `./game?${parameters}`;
         elements["daily-play-link"].addEventListener("click", () => {
             const attemptParameters = new URLSearchParams(parameters);

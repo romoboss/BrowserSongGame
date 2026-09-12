@@ -11,6 +11,7 @@ const swapButton = document.getElementById("swap-artists");
 const shareButton = document.getElementById("share-link");
 const statusElement = document.getElementById("setup-status");
 const canonicalSiteUrl = "https://songaveler.romoboss.com/";
+const MIN_COLLABORATORS_TO_SONGS_RATIO = 0.15;
 
 let selectedStartArtist = null;
 let selectedEndArtist = null;
@@ -582,33 +583,48 @@ function generateLuckyChallenge() {
         .filter(artist => artist.songCount >= requiredLinkedSongs)
         .map(artist => artist.id)
         .sort((left, right) => Number(left) - Number(right));
-    const shuffledStarts = [...candidates];
-    for (let index = shuffledStarts.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [shuffledStarts[index], shuffledStarts[swapIndex]] = [
-            shuffledStarts[swapIndex],
-            shuffledStarts[index]
-        ];
-    }
     const requiredConnections = getLuckyConnections();
+    const preferredCandidates = candidates.filter(artistId => {
+        const artist = getArtistRecord(artistId);
+        const collaboratorCount = getArtistNeighbors(artistId).length;
+        return collaboratorCount / artist.songCount > MIN_COLLABORATORS_TO_SONGS_RATIO;
+    });
+    const candidatePools = preferredCandidates.length > 0
+        && preferredCandidates.length < candidates.length
+        ? [preferredCandidates, candidates]
+        : [candidates];
 
-    for (const startId of shuffledStarts) {
-        const distances = findArtistDistances(startId, requiredConnections);
-        const possibleEnds = candidates.filter(endId =>
-            endId !== startId
-            && distances.get(endId) === requiredConnections
-        );
+    for (const candidatePool of candidatePools) {
+        const shuffledStarts = [...candidatePool];
+        for (let index = shuffledStarts.length - 1; index > 0; index -= 1) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            [shuffledStarts[index], shuffledStarts[swapIndex]] = [
+                shuffledStarts[swapIndex], shuffledStarts[index]
+            ];
+        }
 
-        if (possibleEnds.length === 0) continue;
+        for (const startId of shuffledStarts) {
+            const distances = findArtistDistances(startId, requiredConnections);
+            const possibleEnds = candidatePool.filter(endId =>
+                endId !== startId
+                && distances.get(endId) === requiredConnections
+            );
 
-        const endId = possibleEnds[Math.floor(Math.random() * possibleEnds.length)];
-        startPicker.select(getArtistRecord(startId));
-        endPicker.select(getArtistRecord(endId));
-        setStatus(
-            `${getArtistRecord(startId).name} to ${getArtistRecord(endId).name}. `
-            + `${requiredConnections} connection${requiredConnections === 1 ? "" : "s"} apart and ready to play.`
-        );
-        return;
+            if (possibleEnds.length === 0) continue;
+
+            const endId = possibleEnds[Math.floor(Math.random() * possibleEnds.length)];
+            const [challengeStartId, challengeEndId] = getArtistNeighbors(startId).length
+                > getArtistNeighbors(endId).length
+                ? [endId, startId]
+                : [startId, endId];
+            startPicker.select(getArtistRecord(challengeStartId));
+            endPicker.select(getArtistRecord(challengeEndId));
+            setStatus(
+                `${getArtistRecord(challengeStartId).name} to ${getArtistRecord(challengeEndId).name}. `
+                + `${requiredConnections} connection${requiredConnections === 1 ? "" : "s"} apart and ready to play.`
+            );
+            return;
+        }
     }
 
     setStatus(

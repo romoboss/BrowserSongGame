@@ -76,7 +76,7 @@ function createDailyDatabase(reverseArtists = false) {
     };
 
     for (const artistId of [1, 3, 4, 6]) {
-        for (let index = 1; index <= 24; index += 1) {
+        for (let index = 1; index <= 49; index += 1) {
             const songId = artistId * 1000 + index;
             songs[songId] = `${artists[artistId]} Solo ${index}`;
             artistSongs[artistId].push(songId);
@@ -108,6 +108,40 @@ function createCompactRouteDatabase(database) {
             database.artistSongs[artistId].length,
             null
         ]),
+        adjacency
+    };
+}
+
+function createConnectionRangeDatabase() {
+    const adjacency = [];
+    adjacency[1] = [2];
+    adjacency[2] = [1, 3];
+    adjacency[3] = [2, 4];
+    adjacency[4] = [3];
+
+    return {
+        records: [
+            [1, "One", 50],
+            [2, "Two", 50],
+            [3, "Three", 50],
+            [4, "Four", 50]
+        ],
+        adjacency
+    };
+}
+
+function createRatioPreferenceDatabase() {
+    const adjacency = [];
+    adjacency[1] = [2, ...Array.from({ length: 9 }, (_, index) => index + 4)];
+    adjacency[2] = [1, ...Array.from({ length: 9 }, (_, index) => index + 13)];
+    adjacency[3] = Array.from({ length: 10 }, (_, index) => index + 22);
+
+    return {
+        records: [
+            [1, "Preferred One", 50],
+            [2, "Preferred Two", 50],
+            [3, "Low Ratio", 100]
+        ],
         adjacency
     };
 }
@@ -149,7 +183,41 @@ test("daily generator is deterministic across database insertion order", () => {
     assert.deepEqual(second, first);
     assert.equal(first.dateKey, "2035-11-12");
     assert.equal(first.requiredConnections, 2);
-    assert.equal(first.requiredLinkedSongs, 25);
+    assert.equal(first.requiredLinkedSongs, 50);
+});
+
+test("daily generator deterministically selects connection counts within its configured range", () => {
+    const generator = globalThis.SongavelerDailyGenerator;
+    const database = createConnectionRangeDatabase();
+    const dateKeys = ["2035-11-01", "2035-11-02", "2035-11-05"];
+    const challenges = dateKeys.map(dateKey => generator.generate(database, dateKey));
+
+    assert.deepEqual(
+        dateKeys.map(dateKey => generator.generate(database, dateKey)),
+        challenges
+    );
+    assert.deepEqual(
+        challenges.map(challenge => challenge.requiredConnections),
+        [1, 3, 2]
+    );
+    for (const challenge of challenges) {
+        assert.ok(challenge.requiredConnections >= generator.REQUIRED_CONNECTIONS_MIN);
+        assert.ok(challenge.requiredConnections <= generator.REQUIRED_CONNECTIONS_MAX);
+        assert.ok(
+            database.adjacency[Number(challenge.endId)].length
+                >= database.adjacency[Number(challenge.startId)].length
+        );
+    }
+});
+
+test("daily generator prefers artists with enough collaborators per song", () => {
+    const generator = globalThis.SongavelerDailyGenerator;
+    const challenge = generator.generate(createRatioPreferenceDatabase(), "2035-11-01");
+
+    assert.ok(challenge);
+    assert.equal(generator.MIN_COLLABORATORS_TO_SONGS_RATIO, 0.15);
+    assert.notEqual(challenge.startId, "3");
+    assert.notEqual(challenge.endId, "3");
 });
 
 test("compact route data generates the same daily pair as the full song database", () => {
@@ -314,14 +382,18 @@ test("archive defaults to UTC yesterday, exposes its bounds, and marks replay li
     }
 
     const link = new URL(elements["archive-play-link"].href, "https://example.test/archive.html");
+    const expectedChallenge = globalThis.SongavelerDailyGenerator.generate(
+        globalThis.SONG_DATABASE,
+        "2031-05-09"
+    );
     assert.equal(elements["archive-date-input"].getAttribute("min"), "2031-05-07");
     assert.equal(elements["archive-date-input"].getAttribute("max"), "2031-05-09");
     assert.equal(elements["archive-date-input"].value, "2031-05-09");
     assert.equal(elements["archive-date-output"].textContent, "2031-05-09");
     assert.equal(link.searchParams.get("daily"), "2031-05-09");
     assert.equal(link.searchParams.get("archive"), "1");
-    assert.equal(link.searchParams.get("start"), "6");
-    assert.equal(link.searchParams.get("end"), "4");
+    assert.equal(link.searchParams.get("start"), expectedChallenge.startId);
+    assert.equal(link.searchParams.get("end"), expectedChallenge.endId);
     assert.equal(elements["archive-content"].hidden, false);
     assert.equal(elements["archive-error"].hidden, true);
 });

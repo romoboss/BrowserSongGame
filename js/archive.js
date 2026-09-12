@@ -117,10 +117,7 @@
             if (requestNumber !== challengeRequestNumber) return;
 
             if (!challenge) {
-                showError(
-                    "No archived challenge with 2 connections and at least 25 linked songs "
-                    + "per artist could be generated."
-                );
+                showError("No archived challenge could be generated.");
                 return;
             }
 

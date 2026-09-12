@@ -110,6 +110,11 @@ test("setup selects a reachable pair, shares it, and starts the challenge", asyn
     assert.ok(database.artistSongs[endId].length >= 10);
     assert.deepEqual(sharedSongs, []);
     assert.deepEqual(new Set([startId, endId]), new Set(["1", "3"]));
+    assert.equal(
+        endId,
+        "1",
+        "The goal should have more collaborators than the starting artist"
+    );
     assert.match(elements["setup-status"].textContent, /2 connections apart and ready to play\.$/);
     assert.equal(elements["setup-status"].dataset.error, "false");
 

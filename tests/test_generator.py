@@ -224,6 +224,55 @@ class GeneratorTests(unittest.TestCase):
             finally:
                 database.close()
 
+    def test_add_remix_adds_relationship_based_remixers(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            settings = self.make_settings(Path(temp))
+            database = GraphDatabase(settings.database_path)
+            api = Mock()
+            api.get_recording.return_value = {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "title": "Example (Remix)",
+                "artist-credit": [
+                    {
+                        "name": "Original Artist",
+                        "artist": {
+                            "id": "11111111-1111-4111-8111-111111111111",
+                            "name": "Original Artist",
+                        },
+                    }
+                ],
+            }
+            api.get_artist.return_value = {
+                "id": "33333333-3333-4333-8333-333333333333",
+                "name": "Remixer",
+            }
+            try:
+                result = MODULE.add_remix_by_mbid(
+                    api,
+                    database,
+                    "22222222-2222-4222-8222-222222222222",
+                    ["33333333-3333-4333-8333-333333333333"],
+                )
+
+                self.assertEqual(result["songName"], "Example (Remix)")
+                self.assertEqual(
+                    result["relationshipBasedRemixers"],
+                    [
+                        {
+                            "mbid": "33333333-3333-4333-8333-333333333333",
+                            "name": "Remixer",
+                        }
+                    ],
+                )
+                self.assertEqual(len(result["artists"]), 2)
+                self.assertEqual(database.get_stats()["songArtistLinks"], 2)
+                history = database.connection.execute(
+                    "SELECT import_type, status FROM import_history"
+                ).fetchone()
+                self.assertEqual(tuple(history), ("remix_recording", "completed"))
+            finally:
+                database.close()
+
     def test_build_checkpoint_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "build_checkpoint.json"
