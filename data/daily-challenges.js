@@ -380,6 +380,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 3,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-12T22:26:59Z"
+        }),
+        "2026-09-14": Object.freeze({
+            startId: "3625",
+            endId: "47",
+            startName: "JPEGMAFIA",
+            endName: "Mariah Carey",
+            requiredConnections: 3,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
