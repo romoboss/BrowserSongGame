@@ -389,6 +389,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 3,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-09-15": Object.freeze({
+            startId: "199",
+            endId: "102",
+            startName: "Vince Staples",
+            endName: "David Guetta",
+            requiredConnections: 3,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
