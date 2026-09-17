@@ -407,6 +407,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 1,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-09-17": Object.freeze({
+            startId: "333",
+            endId: "462",
+            startName: "Timbaland",
+            endName: "DJ Khaled",
+            requiredConnections: 1,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
