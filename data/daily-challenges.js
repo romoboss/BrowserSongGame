@@ -416,6 +416,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 1,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-09-18": Object.freeze({
+            startId: "75",
+            endId: "38",
+            startName: "Eminem",
+            endName: "Future",
+            requiredConnections: 2,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
