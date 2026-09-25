@@ -479,6 +479,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 2,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-09-25": Object.freeze({
+            startId: "576",
+            endId: "318",
+            startName: "ScHoolboy Q",
+            endName: "Usher",
+            requiredConnections: 2,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
