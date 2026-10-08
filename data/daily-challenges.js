@@ -596,6 +596,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 3,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-10-08": Object.freeze({
+            startId: "1007",
+            endId: "1068",
+            startName: "Cardi B",
+            endName: "2Pac",
+            requiredConnections: 3,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
