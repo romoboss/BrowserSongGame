@@ -704,6 +704,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 1,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-10-20": Object.freeze({
+            startId: "677",
+            endId: "918",
+            startName: "Daddy Yankee",
+            endName: "J Balvin",
+            requiredConnections: 1,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
