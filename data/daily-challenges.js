@@ -749,6 +749,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 1,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-10-25": Object.freeze({
+            startId: "396",
+            endId: "231",
+            startName: "Lil Baby",
+            endName: "Akon",
+            requiredConnections: 2,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
