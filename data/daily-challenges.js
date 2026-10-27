@@ -767,6 +767,15 @@ globalThis.SongavelerDailyChallenges = Object.freeze({
             requiredConnections: 3,
             requiredLinkedSongs: 50,
             sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
+        }),
+        "2026-10-27": Object.freeze({
+            startId: "83",
+            endId: "46",
+            startName: "JAY Z",
+            endName: "Kid Cudi",
+            requiredConnections: 1,
+            requiredLinkedSongs: 50,
+            sourceDatabaseGeneratedAt: "2026-09-13T18:21:00Z"
         })
     })
 });
